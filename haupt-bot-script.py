@@ -138,10 +138,11 @@ def send_telegram_alert(message):
         print(f"Error sending Telegram alert: {e}")
 
 def main():
-    symbols = [ "BTC_USDT", "ETH_USDT", "SOL_USDT", "SUI_USDT", "DOGE_USDT" ]
+    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
     #symbols = get_perpetual_symbols()
     for symbol in symbols:
         candles_5m = get_candles(symbol, interval='Min5',limit=3)
+        candles_15m = get_candles(symbol, interval='Min15',limit=3)
         candles_1h = get_candles(symbol, interval='Min60')
         candles_4h = get_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
         #candles_12h = get_candles(symbol, interval='Hour12')
@@ -155,9 +156,9 @@ def main():
         #Candelsticks pattern erkennung
         message = ""
         candelsticks_5m_msg = detect_candle_patterns(candles_5m, "5m")
-        candelsticks_4h_msg = detect_candle_patterns(candles_4h, "4H")
+        candelsticks_15m_msg = detect_candle_patterns(candles_4h, "15m")
         candelsticks_1d_msg = detect_candle_patterns(candles_1d, "1D")
-        pattern_message = "\n".join([msg for msg in [candelsticks_5m_msg, candelsticks_4h_msg, candelsticks_1d_msg] if msg])
+        pattern_message = "\n".join([msg for msg in [candelsticks_5m_msg, candelsticks_15m_msg, candelsticks_1d_msg] if msg])
         if pattern_message:
             message += pattern_message + "\n"
             print(f"{symbol}\n{message}\n")
