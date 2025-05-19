@@ -153,6 +153,7 @@ def main():
             continue 
 
         #Candelsticks pattern erkennung
+        message = ""
         candelsticks_5m_msg = detect_candle_patterns(candles_5m, "5m")
         candelsticks_4h_msg = detect_candle_patterns(candles_4h, "4H")
         candelsticks_1d_msg = detect_candle_patterns(candles_1d, "1D")
