@@ -141,8 +141,8 @@ def main():
     symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
     #symbols = get_perpetual_symbols()
     for symbol in symbols:
-        candles_5m = get_candles(symbol, interval='Min5',limit=3)
-        candles_15m = get_candles(symbol, interval='Min15',limit=3)
+        #candles_5m = get_candles(symbol, interval='Min5',limit=3)
+        #candles_15m = get_candles(symbol, interval='Min15',limit=3)
         candles_1h = get_candles(symbol, interval='Min60')
         candles_4h = get_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
         #candles_12h = get_candles(symbol, interval='Hour12')
@@ -152,16 +152,6 @@ def main():
 
         if len(candles_4h) < 14 or len(candles_1d) < 2:
             continue 
-
-        #Candelsticks pattern erkennung
-        message = ""
-        candelsticks_5m_msg = detect_candle_patterns(candles_5m, "5m")
-        candelsticks_15m_msg = detect_candle_patterns(candles_4h, "15m")
-        candelsticks_1d_msg = detect_candle_patterns(candles_1d, "1D")
-        pattern_message = "\n".join([msg for msg in [candelsticks_5m_msg, candelsticks_15m_msg, candelsticks_1d_msg] if msg])
-        if pattern_message:
-            message += pattern_message + "\n"
-            print(f"{symbol}\n{message}")
         
         closes_1h = [float(c[4]) for c in candles_4h]
         closes_4h = [float(c[4]) for c in candles_4h]
@@ -171,6 +161,18 @@ def main():
         closes_1d = [float(c[4]) for c in candles_1d]
         closes_1W = [float(c[4]) for c in candles_1W]
         closes_1M = [float(c[4]) for c in candles_1M]
+
+         #Candelsticks pattern erkennung
+        message = ""
+        candelsticks_4h_msg = detect_candle_patterns(candles_4h, "4H")
+        candelsticks_12h_msg = detect_candle_patterns(
+        list(zip(range(len(closes_12h)), closes_12h, closes_12h, closes_12h, closes_12h, [0]*len(closes_12h))), "12H"
+        )
+        candelsticks_1d_msg = detect_candle_patterns(candles_1d, "1D")
+        pattern_message = "\n".join([msg for msg in [candelsticks_4h_msg, candelsticks_12h_msg, candelsticks_1d_msg] if msg])
+        if pattern_message:
+            message += pattern_message + "\n"
+            print(f"{symbol}\n{message}")
 
         change_pct_4h = ((closes_4h[-1] - closes_4h[-2]) / closes_4h[-2]) * 100
         change_pct_1d = ((closes_1d[-1] - closes_1d[-2]) / closes_1d[-2]) * 100
