@@ -161,7 +161,7 @@ def main():
         pattern_message = "\n".join([msg for msg in [candelsticks_5m_msg, candelsticks_15m_msg, candelsticks_1d_msg] if msg])
         if pattern_message:
             message += pattern_message + "\n"
-            print(f"{symbol}\n{message}\n")
+            print(f"{symbol}\n{message}")
         
         closes_1h = [float(c[4]) for c in candles_4h]
         closes_4h = [float(c[4]) for c in candles_4h]
