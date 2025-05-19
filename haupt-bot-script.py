@@ -114,13 +114,13 @@ def detect_candle_patterns(candles, pattern_name="4H"):
 
         # Hammer: long lower wick, small upper
         if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
-            messages.append(f"🔨 Hammer detected on {pattern_name}")
+            messages.append(f"🔨 Hammer detected on {pattern_name} {o},{h},{l},{c}")
         # Inverted Hammer: long upper wick, small lower
         elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
-            messages.append(f"🔻 Inverted Hammer on {pattern_name}")
+            messages.append(f"🔻 Inverted Hammer on {pattern_name} {o},{h},{l},{c}")
         # Spinning Top: small body, long wicks both sides
         elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
-            messages.append(f"🌀 Spinning Top on {pattern_name}")
+            messages.append(f"🌀 Spinning Top on {pattern_name} {o},{h},{l},{c}")
     return "\n".join(messages)
     
 def send_telegram_alert(message):
