@@ -114,13 +114,13 @@ def detect_candle_patterns(candles, pattern_name="4H"):
 
         # Hammer: long lower wick, small upper
         if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
-            messages.append(f"🔨 Hammer detected on {pattern_name} {o},{h},{l},{c}")
+            messages.append(f"🔨 Hammer detected on {pattern_name}")
         # Inverted Hammer: long upper wick, small lower
         elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
-            messages.append(f"🔻 Inverted Hammer on {pattern_name} {o},{h},{l},{c}")
+            messages.append(f"🔻 Inverted Hammer on {pattern_name}")
         # Spinning Top: small body, long wicks both sides
         elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
-            messages.append(f"🌀 Spinning Top on {pattern_name} {o},{h},{l},{c}")
+            messages.append(f"🌀 Spinning Top on {pattern_name}")
     return "\n".join(messages)
     
 def send_telegram_alert(message):
@@ -138,8 +138,8 @@ def send_telegram_alert(message):
         print(f"Error sending Telegram alert: {e}")
 
 def main():
-    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
-    #symbols = get_perpetual_symbols()
+    #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
+    symbols = get_perpetual_symbols()
     for symbol in symbols:
         #candles_5m = get_candles(symbol, interval='Min5',limit=3)
         #candles_15m = get_candles(symbol, interval='Min15',limit=3)
