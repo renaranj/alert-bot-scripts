@@ -92,6 +92,36 @@ def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smoo
     k = stoch_rsi.rolling(smooth_k).mean()
     d = k.rolling(smooth_d).mean()
     return k.iloc[-1] * 100, d.iloc[-1] * 100
+
+def detect_candle_patterns(candles, pattern_name="4H"):
+    if len(candles) < 1:
+        return ""
+    messages = []
+    for i in [-1]:  # Only check the latest candle
+        t, o, h, l, c, v = candles[i]
+        o, h, l, c = float(o), float(h), float(l), float(c)
+        body = abs(c - o)
+        upper_wick = h - max(c, o)
+        lower_wick = min(c, o) - l
+        total_range = h - l
+
+        if total_range == 0:
+            continue
+
+        body_ratio = body / total_range
+        upper_ratio = upper_wick / total_range
+        lower_ratio = lower_wick / total_range
+
+        # Hammer: long lower wick, small upper
+        if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
+            messages.append(f"🔨 Hammer detected on {pattern_name}")
+        # Inverted Hammer: long upper wick, small lower
+        elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
+            messages.append(f"🔻 Inverted Hammer on {pattern_name}")
+        # Spinning Top: small body, long wicks both sides
+        elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
+            messages.append(f"🌀 Spinning Top on {pattern_name}")
+    return "\n".join(messages)
     
 def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -111,6 +141,7 @@ def main():
     #symbols = [ "BTC_USDT", "ETH_USDT", "SOL_USDT", "SUI_USDT", "DOGE_USDT" ]
     symbols = get_perpetual_symbols()
     for symbol in symbols:
+        candles_5m = get_candles(symbol, interval='Min5',limit=3)
         candles_1h = get_candles(symbol, interval='Min60')
         candles_4h = get_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
         #candles_12h = get_candles(symbol, interval='Hour12')
@@ -120,6 +151,15 @@ def main():
 
         if len(candles_4h) < 14 or len(candles_1d) < 2:
             continue 
+
+        #Candelsticks pattern erkennung
+        candelsticks_5m_msg = detect_candle_patterns(candles_5m, "5m")
+        candelsticks_4h_msg = detect_candle_patterns(candles_4h, "4H")
+        candelsticks_1d_msg = detect_candle_patterns(candles_1d, "1D")
+        pattern_message = "\n".join([msg for msg in [candelsticks_5m_msg, candelsticks_4h_msg, candelsticks_1d_msg] if msg])
+        if pattern_message:
+            message += pattern_message + "\n"
+            print(f"{symbol}\n{message}\n")
         
         closes_1h = [float(c[4]) for c in candles_4h]
         closes_4h = [float(c[4]) for c in candles_4h]
@@ -177,7 +217,7 @@ def main():
         
         if change_pct_4h > PRICE_CHANGE_THRESHOLD and rsi_4h and rsi_4h > RSI_THRESHOLD:
             message = f"🚨 {symbol}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\nema200:{near_ema_200} W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
-            send_telegram_alert(message)
+            #send_telegram_alert(message)
             #print(f"{symbol}:{price:.4f} ema20012h:{ema_200_12h:.4f},ema2001d:{ema_200_1d:.4f}")
 
 if __name__ == "__main__":
