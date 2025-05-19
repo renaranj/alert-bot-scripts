@@ -138,8 +138,8 @@ def send_telegram_alert(message):
         print(f"Error sending Telegram alert: {e}")
 
 def main():
-    #symbols = [ "BTC_USDT", "ETH_USDT", "SOL_USDT", "SUI_USDT", "DOGE_USDT" ]
-    symbols = get_perpetual_symbols()
+    symbols = [ "BTC_USDT", "ETH_USDT", "SOL_USDT", "SUI_USDT", "DOGE_USDT" ]
+    #symbols = get_perpetual_symbols()
     for symbol in symbols:
         candles_5m = get_candles(symbol, interval='Min5',limit=3)
         candles_1h = get_candles(symbol, interval='Min60')
