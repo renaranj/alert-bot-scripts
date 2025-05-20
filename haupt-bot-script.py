@@ -1,6 +1,6 @@
 import requests
 #import time
-from datetime import datetime
+from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 
@@ -14,7 +14,7 @@ RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
 EMA_TOUCH_TOLERANCE = 0.1  # 5% tolerance
-
+        
 def get_perpetual_symbols():
     url = "https://contract.mexc.com/api/v1/contract/detail"
     res = requests.get(url).json()
@@ -138,6 +138,8 @@ def send_telegram_alert(message):
         print(f"Error sending Telegram alert: {e}")
 
 def main():
+    now = datetime.now(timezone.utc)
+    hour, minute = now.hour, now.minute
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
     symbols = get_perpetual_symbols()
     for symbol in symbols:
@@ -163,16 +165,20 @@ def main():
         closes_1M = [float(c[4]) for c in candles_1M]
 
          #Candelsticks pattern erkennung
-        message = ""
-        candelsticks_4h_msg = detect_candle_patterns(candles_4h, "4H")
-        candelsticks_12h_msg = detect_candle_patterns(
-        list(zip(range(len(closes_12h)), closes_12h, closes_12h, closes_12h, closes_12h, [0]*len(closes_12h))), "12H"
-        )
-        candelsticks_1d_msg = detect_candle_patterns(candles_1d, "1D")
+        candelsticks_msg = f"{symbol}\n{message}"
+        if hour in [0, 4, 8, 12, 16, 20]:
+            candelsticks_4h_msg = detect_candle_patterns(candles_4h, "4H")
+        if hour in [0, 12]:
+            candelsticks_12h_msg = detect_candle_patterns(
+                list(zip(range(len(closes_12h)), closes_12h, closes_12h, closes_12h, closes_12h, [0]*len(closes_12h))), "12H"
+            )
+        if hour == 0:
+            candelsticks_1d_msg = detect_candle_patterns(candles_1d, "1D")
         pattern_message = "\n".join([msg for msg in [candelsticks_4h_msg, candelsticks_12h_msg, candelsticks_1d_msg] if msg])
         if pattern_message:
-            message += pattern_message + "\n"
-            print(f"{symbol}\n{message}")
+            candelsticks_msg += pattern_message + "\n"
+            #print(f"{symbol}\n{message}")
+            send_telegram_alert(candelsticks_msg)
 
         change_pct_4h = ((closes_4h[-1] - closes_4h[-2]) / closes_4h[-2]) * 100
         change_pct_1d = ((closes_1d[-1] - closes_1d[-2]) / closes_1d[-2]) * 100
