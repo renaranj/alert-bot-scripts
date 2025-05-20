@@ -94,33 +94,51 @@ def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smoo
     return k.iloc[-1] * 100, d.iloc[-1] * 100
 
 def detect_candle_patterns(candles, pattern_name="4H"):
-    if len(candles) < 1:
+    if len(candles) < 2:
         return ""
     messages = []
-    for i in [-1]:  # Only check the latest candle
-        t, o, h, l, c, v = candles[i]
-        o, h, l, c = float(o), float(h), float(l), float(c)
-        body = abs(c - o)
-        upper_wick = h - max(c, o)
-        lower_wick = min(c, o) - l
-        total_range = h - l
 
-        if total_range == 0:
-            continue
+    # We'll use the last two candles to detect engulfing patterns
+    prev = candles[-2]
+    curr = candles[-1]
 
-        body_ratio = body / total_range
-        upper_ratio = upper_wick / total_range
-        lower_ratio = lower_wick / total_range
+    t1, o1, h1, l1, c1, v1 = prev
+    t2, o2, h2, l2, c2, v2 = curr
+    o1, c1 = float(o1), float(c1)
+    o2, c2 = float(o2), float(c2)
+    h2, l2 = float(h2), float(l2)
 
-        # Hammer: long lower wick, small upper
-        if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
-            messages.append(f"🔨 Hammer detected on {pattern_name}")
-        # Inverted Hammer: long upper wick, small lower
-        elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
-            messages.append(f"🔻 Inverted Hammer on {pattern_name}")
-        # Spinning Top: small body, long wicks both sides
-        elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
-            messages.append(f"🌀 Spinning Top on {pattern_name}")
+    # Bullish Engulfing: previous candle is red, current is green and body engulfs
+    if c1 < o1 and c2 > o2 and o2 < c1 and c2 > o1:
+        messages.append(f"🟢 Bullish Engulfing on {pattern_name}")
+    # Bearish Engulfing: previous candle is green, current is red and body engulfs
+    elif c1 > o1 and c2 < o2 and o2 > c1 and c2 < o1:
+        messages.append(f"🔴 Bearish Engulfing on {pattern_name}")
+
+    # Continue checking other patterns for the last candle
+    o, h, l, c = o2, h2, l2, c2
+    body = abs(c - o)
+    upper_wick = h - max(c, o)
+    lower_wick = min(c, o) - l
+    total_range = h - l
+
+    if total_range == 0:
+        return "\n".join(messages)
+
+    body_ratio = body / total_range
+    upper_ratio = upper_wick / total_range
+    lower_ratio = lower_wick / total_range
+
+    # Hammer
+    if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
+        messages.append(f"🔨 Hammer detected on {pattern_name}")
+    # Inverted Hammer
+    elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
+        messages.append(f"🔻 Inverted Hammer on {pattern_name}")
+    # Spinning Top
+    elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
+        messages.append(f"🌀 Spinning Top on {pattern_name}")
+
     return "\n".join(messages)
     
 def send_telegram_alert(message):
