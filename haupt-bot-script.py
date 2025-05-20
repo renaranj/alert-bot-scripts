@@ -165,19 +165,15 @@ def main():
         closes_1M = [float(c[4]) for c in candles_1M]
 
          #Candelsticks pattern erkennung
-        candelsticks_msg = f"{symbol}\n"
         if hour in [0, 4, 8, 12, 16, 20]:
-            candelsticks_4h_msg = detect_candle_patterns(candles_4h, "4H")
+            candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
         if hour in [0, 12]:
-            candelsticks_12h_msg = detect_candle_patterns(
+            candelsticks_msg += detect_candle_patterns(
                 list(zip(range(len(closes_12h)), closes_12h, closes_12h, closes_12h, closes_12h, [0]*len(closes_12h))), "12H"
             )
         if hour == 0:
-            candelsticks_1d_msg = detect_candle_patterns(candles_1d, "1D")
-        pattern_message = "\n".join([msg for msg in [candelsticks_4h_msg, candelsticks_12h_msg, candelsticks_1d_msg] if msg])
-        if pattern_message:
-            candelsticks_msg += pattern_message + "\n"
-            #print(f"{symbol}\n{message}")
+            candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
+        if candelsticks_msg:
             send_telegram_alert(candelsticks_msg)
 
         change_pct_4h = ((closes_4h[-1] - closes_4h[-2]) / closes_4h[-2]) * 100
