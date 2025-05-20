@@ -175,7 +175,8 @@ def main():
             candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
         if candelsticks_msg:
                 candelsticks_msg += candelsticks_msg + "\n"
-                send_telegram_alert(candelsticks_msg)
+                print(f"{symbol} \n{candelsticks_msg}"
+                #send_telegram_alert(candelsticks_msg)
 
         change_pct_4h = ((closes_4h[-1] - closes_4h[-2]) / closes_4h[-2]) * 100
         change_pct_1d = ((closes_1d[-1] - closes_1d[-2]) / closes_1d[-2]) * 100
