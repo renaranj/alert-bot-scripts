@@ -165,7 +165,7 @@ def main():
         closes_1M = [float(c[4]) for c in candles_1M]
 
          #Candelsticks pattern erkennung
-        candelsticks_msg = f"{symbol}\n{message}"
+        candelsticks_msg = f"{symbol}\n"
         if hour in [0, 4, 8, 12, 16, 20]:
             candelsticks_4h_msg = detect_candle_patterns(candles_4h, "4H")
         if hour in [0, 12]:
