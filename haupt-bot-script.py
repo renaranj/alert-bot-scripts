@@ -174,7 +174,7 @@ def main():
         if hour == 0:
             candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
         if candelsticks_msg:
-                candelsticks_msg += candelsticks_msg + "\n"
+                candelsticks_msg += candelsticks_msg
                 print(f"{symbol} \n{candelsticks_msg}")
                 #send_telegram_alert(candelsticks_msg)
 
