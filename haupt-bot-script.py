@@ -199,8 +199,8 @@ def main():
 
         change_pct_4h = ((closes_4h[-1] - closes_4h[-2]) / closes_4h[-2]) * 100
         change_pct_1d = ((closes_1d[-1] - closes_1d[-2]) / closes_1d[-2]) * 100
-        change_pct_1W = 'n/a'
-        change_pct_1M = 'n/a'
+        change_pct_1W = 'na'
+        change_pct_1M = 'na'
         if len(closes_1W) > 2: 
             change_pct_1W = ((closes_1W[-1] - closes_1W[-2]) / closes_1W[-2]) * 100
         if len(closes_1M) > 2:
@@ -235,16 +235,10 @@ def main():
                 abs(price - ema_200_12h) / ema_200_12h < EMA_TOUCH_TOLERANCE or
                 abs(price - ema_200_1d) / ema_200_1d < EMA_TOUCH_TOLERANCE
             )
-
-        # Alert only at 4-hour or 12-hour intervals (UTC)
-        now_utc = datetime.utcnow()
-        hour = now_utc.hour
-
-        #if hour % 4 == 0 or hour % 12 == 0:
-        
+                
         if change_pct_4h > PRICE_CHANGE_THRESHOLD and rsi_4h and rsi_4h > RSI_THRESHOLD:
             message = f"🚨 {symbol}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\nema200:{near_ema_200} W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
-            #send_telegram_alert(message)
+            send_telegram_alert(message)
             #print(f"{symbol}:{price:.4f} ema20012h:{ema_200_12h:.4f},ema2001d:{ema_200_1d:.4f}")
 
 if __name__ == "__main__":
