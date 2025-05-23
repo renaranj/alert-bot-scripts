@@ -115,8 +115,8 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     messages = []
 
     # We'll use the last two candles to detect engulfing patterns
-    prev = candles[-2]
-    curr = candles[-1]
+    prev = candles[-3]
+    curr = candles[-2]
 
     t1, o1, h1, l1, c1, v1 = prev
     t2, o2, h2, l2, c2, v2 = curr
