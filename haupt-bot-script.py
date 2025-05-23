@@ -13,8 +13,6 @@ PRICE_CHANGE_THRESHOLD = 10 # in percent
 RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
-EMA_TOUCH_TOLERANCE = 0.1  # 5% tolerance
-TIME_Control = False
         
 def get_perpetual_symbols():
     url = "https://contract.mexc.com/api/v1/contract/detail"
@@ -202,14 +200,14 @@ def main():
 
          #Candelsticks pattern erkennung
         candelsticks_msg = ""
-        if TIME_Control and hour in [0, 4, 8, 12, 16, 20]:
-            candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
-        if TIME_Control and hour in [0, 12]:
-            candelsticks_msg += detect_candle_patterns(
+        #if hour in [0, 4, 8, 12, 16, 20]:
+        candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
+        #if hour in [0, 12]:
+        candelsticks_msg += detect_candle_patterns(
                 list(zip(range(len(closes_12h)), closes_12h, closes_12h, closes_12h, closes_12h, [0]*len(closes_12h))), "12H"
-            )
-        if TIME_Control and hour == 0:
-            candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
+        )
+        #if hour == 0:
+        candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
         if candelsticks_msg:
                 candelsticks_msg += candelsticks_msg
                 print(f"{symbol} \n{candelsticks_msg}")
