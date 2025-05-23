@@ -14,6 +14,7 @@ RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
 EMA_TOUCH_TOLERANCE = 0.1  # 5% tolerance
+TIME_Control = False
         
 def get_perpetual_symbols():
     url = "https://contract.mexc.com/api/v1/contract/detail"
@@ -83,6 +84,23 @@ def calculate_ema(closes, period=200):
     if len(closes) < period:
         return None
     return pd.Series(closes).ewm(span=period, adjust=False).mean().iloc[-1]
+
+def touch_ema_200(candles, closes_12h, closes_1d):
+        if len(candles) < 2:
+            return False
+
+        t, o, h, l, c, v = candles[-1]
+        h, l = float(h), float(l)
+
+        if len(closes_12h) > 200:
+            ema_200_12h = calculate_ema(closes_12h)
+            if ema_200_12h > l and ema_200_12h < h:
+                return True
+         
+        if len(closes_1d) > 200:
+            ema_200_1d = calculate_ema(closes_1d)
+            if ema_200_1d > l and ema_200_1d < h:
+                return True
 
 def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smooth_d=3):
     if len(closes) < rsi_period + stoch_period:
@@ -170,7 +188,7 @@ def main():
         candles_1W = get_candles(symbol,interval='Week1')
         candles_1M = get_candles(symbol,interval='Month1')
 
-        if len(candles_4h) < 14 or len(candles_1d) < 2:
+        if len(candles_4h) < 14:
             continue 
         
         closes_1h = [float(c[4]) for c in candles_4h]
@@ -184,63 +202,53 @@ def main():
 
          #Candelsticks pattern erkennung
         candelsticks_msg = ""
-        if hour in [0, 4, 8, 12, 16, 20]:
+        if TIME_Control and hour in [0, 4, 8, 12, 16, 20]:
             candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
-        if hour in [0, 12]:
+        if TIME_Control and hour in [0, 12]:
             candelsticks_msg += detect_candle_patterns(
                 list(zip(range(len(closes_12h)), closes_12h, closes_12h, closes_12h, closes_12h, [0]*len(closes_12h))), "12H"
             )
-        if hour == 0:
+        if TIME_Control and hour == 0:
             candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
         if candelsticks_msg:
                 candelsticks_msg += candelsticks_msg
                 print(f"{symbol} \n{candelsticks_msg}")
                 #send_telegram_alert(candelsticks_msg)
 
+        change_pct_1d = 0
+        change_pct_1W = 0
+        change_pct_1M = 0
         change_pct_4h = ((closes_4h[-1] - closes_4h[-2]) / closes_4h[-2]) * 100
-        change_pct_1d = ((closes_1d[-1] - closes_1d[-2]) / closes_1d[-2]) * 100
-        change_pct_1W = 'na'
-        change_pct_1M = 'na'
+        if len(closes_1d) > 2: 
+            change_pct_1d = ((closes_1d[-1] - closes_1d[-2]) / closes_1d[-2]) * 100
         if len(closes_1W) > 2: 
             change_pct_1W = ((closes_1W[-1] - closes_1W[-2]) / closes_1W[-2]) * 100
         if len(closes_1M) > 2:
             change_pct_1M = ((closes_1M[-1] - closes_1M[-2]) / closes_1M[-2]) * 100
 
-        rsi_4h = calculate_rsi(closes_4h)
-        rsi_1d = calculate_rsi(closes_1d)
-
-        k_stoch, d_stoch = calculate_stoch_rsi(closes_4h)
-        
+        rsi_4h = 0
+        rsi_1d = 0
+        if len(candles_4h) > 14:
+            rsi_4h = calculate_rsi(closes_4h)
+        if len(candles_1d) > 14:
+            rsi_1d = calculate_rsi(closes_1d)
 
         macd_4h_condition = False
         macd_1d_condition = False
-        if len(candles_1d) >= 50:
+        if len(candles_4h) >= 50:
             macd_4h, signal_4h, hist_4h = calculate_macd(closes_4h)
-            macd_1d, signal_1d, hist_1d = calculate_macd(closes_1d)
-
             macd_4h_condition = macd_4h > 0 and signal_4h > 0 and hist_4h > 0
+        if len(candles_1d) >= 50:
+            macd_1d, signal_1d, hist_1d = calculate_macd(closes_1d)
             macd_1d_condition = macd_1d > 0 and signal_1d > 0 and hist_1d > 0
             #print(f"{symbol} MACD: {macd_1d:.3f}, Signal: {signal_1d:.3f}, Histogram: {hist_1d:.3f}")
 
-        near_ema_200 = False
-        ema_200_12h = -100
-        ema_200_1d = -100
-        if len(candles_1d) >= EMA_LONG_PERIOD:
-            ema_200_12h = calculate_ema(closes_12h)
-            ema_200_1d = calculate_ema(closes_1d)
-            price = closes_1h[-1]
-            #print(f"ema20012h:{ema_200_12h},ema2001d:{ema_200_1d}")
-
-            near_ema_200 = (
-                abs(price - ema_200_12h) / ema_200_12h < EMA_TOUCH_TOLERANCE or
-                abs(price - ema_200_1d) / ema_200_1d < EMA_TOUCH_TOLERANCE
-            )
+        is_touch_ema_200 = touch_ema_200(candles_1h,closes_12h,closes_1d)
                 
         if change_pct_4h > PRICE_CHANGE_THRESHOLD and rsi_4h and rsi_4h > RSI_THRESHOLD:
-                print(f"{symbol}")
-                message = f"🚨 {symbol}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\nema200:{near_ema_200} W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
-                send_telegram_alert(message)
-                #print(f"{symbol}:{price:.4f} ema20012h:{ema_200_12h:.4f},ema2001d:{ema_200_1d:.4f}")
+            #print(f"{symbol}")
+            message = f"🚨 {symbol}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\nema200:{is_touch_ema_200} W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
+            #send_telegram_alert(message)
 
 if __name__ == "__main__":
     main()
