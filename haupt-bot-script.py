@@ -200,18 +200,18 @@ def main():
 
          #Candelsticks pattern erkennung
         candelsticks_msg = ""
-        #if hour in [0, 4, 8, 12, 16, 20]:
+        if hour in [0, 4, 8, 12, 16, 20]:
         candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
-        #if hour in [0, 12]:
+        if hour in [0, 12]:
         candelsticks_msg += detect_candle_patterns(
                 list(zip(range(len(closes_12h)), closes_12h, closes_12h, closes_12h, closes_12h, [0]*len(closes_12h))), "12H"
         )
-        #if hour == 0:
+        if hour == 0:
         candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
         if candelsticks_msg:
                 #candelsticks_msg += candelsticks_msg
-                print(f"{symbol} \n{candelsticks_msg}")
-                #send_telegram_alert(candelsticks_msg)
+                #print(f"{symbol} \n{candelsticks_msg}")
+                send_telegram_alert(candelsticks_msg)
 
         change_pct_1d = 0
         change_pct_1W = 0
