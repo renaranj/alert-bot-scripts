@@ -84,7 +84,7 @@ def calculate_ema(closes, period=200):
     return pd.Series(closes).ewm(span=period, adjust=False).mean().iloc[-1]
 
 def touch_ema_200(candles, closes_12h, closes_1d):
-        if len(candles) < 2:
+        if len(candles) < 3:
             return False
 
         t, o, h, l, c, v = candles[-1]
