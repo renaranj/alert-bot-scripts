@@ -219,7 +219,7 @@ def main():
         change_pct_1W = 0
         change_pct_1M = 0
         change_pct_4h = ((closes_4h[-1] - closes_4h[-2]) / closes_4h[-2]) * 100
-        print({symbol} {closes_4h[-1]} {closes_4h[-1]}) 
+        print(f"{symbol} {closes_4h[-1]} {closes_4h[-2]}") 
         if len(closes_1d) > 2: 
             change_pct_1d = ((closes_1d[-1] - closes_1d[-2]) / closes_1d[-2]) * 100
         if len(closes_1W) > 2: 
