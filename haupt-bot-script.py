@@ -174,8 +174,8 @@ def send_telegram_alert(message):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
-    #symbols = get_perpetual_symbols()
+    #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
+    symbols = get_perpetual_symbols()
     for symbol in symbols:
         #candles_5m = get_candles(symbol, interval='Min5',limit=3)
         #candles_15m = get_candles(symbol, interval='Min15',limit=3)
@@ -209,7 +209,7 @@ def main():
         #if hour == 0:
         candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
         if candelsticks_msg:
-                candelsticks_msg += candelsticks_msg
+                #candelsticks_msg += candelsticks_msg
                 print(f"{symbol} \n{candelsticks_msg}")
                 #send_telegram_alert(candelsticks_msg)
 
@@ -217,7 +217,7 @@ def main():
         change_pct_1W = 0
         change_pct_1M = 0
         change_pct_4h = ((closes_4h[-1] - closes_4h[-2]) / closes_4h[-2]) * 100
-        print(f"{symbol} {closes_4h[-1]} {closes_4h[-2]}") 
+        #print(f"{symbol} {closes_4h[-1]} {closes_4h[-2]}") 
         if len(closes_1d) > 2: 
             change_pct_1d = ((closes_1d[-1] - closes_1d[-2]) / closes_1d[-2]) * 100
         if len(closes_1W) > 2: 
