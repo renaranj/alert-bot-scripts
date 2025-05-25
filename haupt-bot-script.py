@@ -174,8 +174,8 @@ def send_telegram_alert(message):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
-    #symbols = get_perpetual_symbols()
+   # symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
+    symbols = get_perpetual_symbols()
     for symbol in symbols:
         #candles_5m = get_candles(symbol, interval='Min5',limit=3)
         #candles_15m = get_candles(symbol, interval='Min15',limit=3)
@@ -200,18 +200,18 @@ def main():
 
          #Candelsticks pattern erkennung
         candelsticks_msg = ""
-        if hour in [0, 4, 8, 12, 16, 20]:
+        #if hour in [0, 4, 8, 12, 16, 20]:
         candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
-        if hour in [0, 12]:
+        #if hour in [0, 12]:
         candelsticks_msg += detect_candle_patterns(
                 list(zip(range(len(closes_12h)), closes_12h, closes_12h, closes_12h, closes_12h, [0]*len(closes_12h))), "12H"
         )
-        if hour == 0:
+       # if hour == 0:
         candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
         if candelsticks_msg:
                 #candelsticks_msg += candelsticks_msg
-                #print(f"{symbol} \n{candelsticks_msg}")
-                send_telegram_alert(candelsticks_msg)
+           print(f"{symbol} \n{candelsticks_msg}")
+           #send_telegram_alert(candelsticks_msg)
 
         change_pct_1d = 0
         change_pct_1W = 0
