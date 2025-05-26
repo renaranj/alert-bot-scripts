@@ -1,5 +1,7 @@
 import requests
-#import time
+import time
+import hmac
+import hashlib
 from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
@@ -7,6 +9,8 @@ import pandas as pd
 # === PLACEHOLDERS ===
 TELEGRAM_TOKEN = "7716430771:AAHqCZNoDACm3qlaue4G_hTJkyrxDRV9uxo"
 TELEGRAM_CHAT_ID = "6487259893"
+API_KEY = 'mx0vglybt9Fm3utSdv'
+API_SECRET = 'e8b636b031c2451d91ad03b4928b18bd'
 
 # --- Constants ---
 PRICE_CHANGE_THRESHOLD = 10 # in percent
@@ -19,6 +23,38 @@ def get_perpetual_symbols():
     res = requests.get(url).json()
     return [s["symbol"] for s in res["data"] if s["quoteCoin"] == "USDT"]
 
+def get_symbols_with_open_positions():
+    url = "https://contract.mexc.com/api/v1/private/position/open_positions"
+    timestamp = str(int(time.time() * 1000))
+
+    params = {
+        "api_key": API_KEY,
+        "req_time": timestamp,
+    }
+
+    # Build the signature string
+    query_string = '&'.join([f"{key}={params[key]}" for key in sorted(params)])
+    signature = hmac.new(
+        API_SECRET.encode('utf-8'),
+        query_string.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+    params["sign"] = signature
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    response = requests.post(url, data=params, headers=headers)
+    if response.status_code != 200:
+        print("Failed to get open positions:", response.status_code, response.text)
+        return []
+
+    data = response.json().get("data", [])
+    # Filter symbols where position is not zero
+    open_symbols = [item["symbol"] for item in data if float(item.get("availablePosition", 0)) != 0]
+    return open_symbols
+        
 def get_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
     params = {'interval': interval, 'limit': limit}
@@ -198,7 +234,9 @@ def send_telegram_alert(message):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
+    #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
+    symbols = get_symbols_with_open_positions()
+    print(f"{symbols}")
     #symbols = get_perpetual_symbols()
     for symbol in symbols:
         #candles_5m = get_candles(symbol, interval='Min5',limit=3)
