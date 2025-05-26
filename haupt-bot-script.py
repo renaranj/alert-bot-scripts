@@ -46,6 +46,30 @@ def get_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
 
     return candles
 
+def get_12h_candles_from_4h(candles_4h):
+    candles_12h = []
+    for i in range(0, len(candles_4h) - 2, 3):
+        group = candles_4h[i:i + 3]
+        if len(group) < 3:
+            continue
+        times = [g[0] for g in group]
+        opens = [float(g[1]) for g in group]
+        highs = [float(g[2]) for g in group]
+        lows = [float(g[3]) for g in group]
+        closes = [float(g[4]) for g in group]
+        volumes = [float(g[5]) for g in group]
+
+        candle_12h = (
+            times[0],             # timestamp of first 4H candle
+            opens[0],             # open of first
+            max(highs),           # high of group
+            min(lows),            # low of group
+            closes[-1],           # close of last
+            sum(volumes)          # sum of volume
+        )
+        candles_12h.append(candle_12h)
+    return candles_12h
+
 def calculate_rsi(closes, period=14):
     if len(closes) < period + 1:
         return None
@@ -174,14 +198,14 @@ def send_telegram_alert(message):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-   # symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT"]
-    symbols = get_perpetual_symbols()
+    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
+    #symbols = get_perpetual_symbols()
     for symbol in symbols:
         #candles_5m = get_candles(symbol, interval='Min5',limit=3)
         #candles_15m = get_candles(symbol, interval='Min15',limit=3)
         candles_1h = get_candles(symbol, interval='Min60')
         candles_4h = get_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
-        #candles_12h = get_candles(symbol, interval='Hour12')
+        candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(symbol,interval='Day1')
         candles_1W = get_candles(symbol,interval='Week1')
         candles_1M = get_candles(symbol,interval='Month1')
@@ -191,9 +215,7 @@ def main():
         
         closes_1h = [float(c[4]) for c in candles_4h]
         closes_4h = [float(c[4]) for c in candles_4h]
-        closes_12h = [
-            np.mean(closes_4h[i:i+3]) for i in range(0, len(closes_4h) - 2, 3)
-        ]
+        closes_12h = [float(c[4]) for c in candles_12h]
         closes_1d = [float(c[4]) for c in candles_1d]
         closes_1W = [float(c[4]) for c in candles_1W]
         closes_1M = [float(c[4]) for c in candles_1M]
@@ -203,9 +225,7 @@ def main():
         #if hour in [0, 4, 8, 12, 16, 20]:
         candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
         #if hour in [0, 12]:
-        candelsticks_msg += detect_candle_patterns(
-                list(zip(range(len(closes_12h)), closes_12h, closes_12h, closes_12h, closes_12h, [0]*len(closes_12h))), "12H"
-        )
+        candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
        # if hour == 0:
         candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
         if candelsticks_msg:
