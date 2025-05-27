@@ -23,7 +23,33 @@ def get_perpetual_symbols():
     res = requests.get(url).json()
     return [s["symbol"] for s in res["data"] if s["quoteCoin"] == "USDT"]
 
-def get_symbols_with_open_positions():
+def get_spot_open_symbols():
+    url = "https://api.mexc.com/api/v3/account"
+    timestamp = int(time.time() * 1000)
+
+    query_string = f"timestamp={timestamp}"
+    signature = hmac.new(
+        API_SECRET.encode('utf-8'),
+        query_string.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+
+    headers = {
+        "X-MEXC-APIKEY": API_KEY
+    }
+
+    full_url = f"{url}?{query_string}&signature={signature}"
+    response = requests.get(full_url, headers=headers)
+
+    if response.status_code != 200:
+        print("Spot balance fetch failed:", response.status_code)
+        return []
+
+    balances = response.json().get("balances", [])
+    open_spot = [b["asset"] for b in balances if float(b["free"]) + float(b["locked"]) > 0]
+    return open_spot
+        
+def get_futures_open_symbols():
     url = "https://contract.mexc.com/api/v1/private/position/open_positions"
     timestamp = str(int(time.time() * 1000))
 
@@ -32,7 +58,6 @@ def get_symbols_with_open_positions():
         "req_time": timestamp,
     }
 
-    # Build the signature string
     query_string = '&'.join([f"{key}={params[key]}" for key in sorted(params)])
     signature = hmac.new(
         API_SECRET.encode('utf-8'),
@@ -47,13 +72,12 @@ def get_symbols_with_open_positions():
 
     response = requests.post(url, data=params, headers=headers)
     if response.status_code != 200:
-        print("Failed to get open positions:", response.status_code, response.text)
+        print("Futures position fetch failed:", response.status_code)
         return []
 
     data = response.json().get("data", [])
-    # Filter symbols where position is not zero
-    open_symbols = [item["symbol"] for item in data if float(item.get("holdVol", 0)) != 0]
-    return open_symbols
+    open_futures = [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
+    return open_futures
         
 def get_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
@@ -235,7 +259,8 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
-    symbols = get_symbols_with_open_positions()
+    #symbols = get_futures_open_symbols()
+    symbols = get_spot_open_symbols()
     print(f"{symbols}")
     #symbols = get_perpetual_symbols()
     for symbol in symbols:
