@@ -280,10 +280,10 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
-    futures = get_futures_open_symbols()
+    symbols = get_futures_open_symbols()
     spot = get_spot_open_symbols()
     print(f"{spot}")
-    print(f"{futures}")    
+    print(f"{symbols}")    
     #symbols = get_perpetual_symbols()
     for symbol in symbols:
         #candles_5m = get_candles(symbol, interval='Min5',limit=3)
