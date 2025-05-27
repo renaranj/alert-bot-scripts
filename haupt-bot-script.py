@@ -52,7 +52,7 @@ def get_symbols_with_open_positions():
 
     data = response.json().get("data", [])
     # Filter symbols where position is not zero
-    open_symbols = [item["symbol"] for item in data if float(item.get("availablePosition", 0)) != 0]
+    open_symbols = [item["symbol"] for item in data if float(item.get("holdVol", 0)) != 0]
     return open_symbols
         
 def get_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
