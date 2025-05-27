@@ -79,7 +79,7 @@ def get_futures_open_symbols():
     open_futures = [item["symbol"] for item in data if float(item.get("availableOpen", 0)) != 0]
     return open_futures
         
-def get_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
+def get_futures_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
     params = {'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
@@ -106,6 +106,27 @@ def get_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
 
     return candles
 
+def get_spot_candles(symbol, interval='4h', limit= EMA_LONG_PERIOD + 1):
+    url = f"https://api.mexc.com/api/v3/klines"
+    params = {'symbol': symbol, 'interval': interval, 'limit': limit}
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        print(f"Failed to fetch spot candles for {symbol}: {response.text}")
+        return []
+
+    data = response.json()
+    if not data or len(data[0]) < 6:
+        print(f"Unexpected spot candle structure for {symbol}")
+        return []
+
+    candles = [
+        (int(item[0]), float(item[1]), float(item[2]), float(item[3]), float(item[4]), float(item[5]))
+        for item in data
+    ]
+
+    return candles
+        
 def get_12h_candles_from_4h(candles_4h):
     candles_12h = []
     for i in range(0, len(candles_4h) - 2, 3):
@@ -260,19 +281,19 @@ def main():
     hour, minute = now.hour, now.minute
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
     futures = get_futures_open_symbols()
-    symbols = get_spot_open_symbols()
-    print(f"{symbols}")
+    spot = get_spot_open_symbols()
+    print(f"{spot}")
     print(f"{futures}")    
     #symbols = get_perpetual_symbols()
     for symbol in symbols:
         #candles_5m = get_candles(symbol, interval='Min5',limit=3)
         #candles_15m = get_candles(symbol, interval='Min15',limit=3)
-        candles_1h = get_candles(symbol, interval='Min60')
-        candles_4h = get_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
+        candles_1h = get_futures_candles(symbol, interval='Min60')
+        candles_4h = get_futures_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(symbol,interval='Day1')
-        candles_1W = get_candles(symbol,interval='Week1')
-        candles_1M = get_candles(symbol,interval='Month1')
+        candles_1d = get_futures_candles(symbol,interval='Day1')
+        candles_1W = get_futures_candles(symbol,interval='Week1')
+        candles_1M = get_futures_candles(symbol,interval='Month1')
 
         if len(candles_4h) < 14:
             continue 
