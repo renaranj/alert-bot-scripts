@@ -50,7 +50,7 @@ def get_spot_open_symbols():
     return open_spot
         
 def get_futures_open_symbols():
-    url = "https://contract.mexc.com/api/v1/private/position/open_positions"
+    url = "https://contract.mexc.com/api/v1/private/account/assets"
     timestamp = str(int(time.time() * 1000))
 
     params = {
@@ -76,7 +76,7 @@ def get_futures_open_symbols():
         return []
 
     data = response.json().get("data", [])
-    open_futures = [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
+    open_futures = [item["symbol"] for item in data if float(item.get("availableOpen", 0)) != 0]
     return open_futures
         
 def get_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
