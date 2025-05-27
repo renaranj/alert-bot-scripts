@@ -50,7 +50,7 @@ def get_spot_open_symbols():
     return open_spot
         
 def get_futures_open_symbols():
-    url = "https://contract.mexc.com/api/v1/private/account/assets"
+    url = "https://contract.mexc.com/api/v1/private/position/open_positions"
     timestamp = str(int(time.time() * 1000))
 
     params = {
@@ -76,8 +76,29 @@ def get_futures_open_symbols():
         return []
 
     data = response.json().get("data", [])
-    open_futures = [item["symbol"] for item in data if float(item.get("availableOpen", 0)) != 0]
+    open_futures = [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
     return open_futures
+
+def get_spot_candles(symbol, interval='4h', limit= EMA_LONG_PERIOD + 1):
+    url = f"https://api.mexc.com/api/v3/klines"
+    params = {'symbol': symbol, 'interval': interval, 'limit': limit}
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        print(f"Failed to fetch spot candles for {symbol}: {response.text}")
+        return []
+
+    data = response.json()
+    if not data or len(data[0]) < 6:
+        print(f"Unexpected spot candle structure for {symbol}")
+        return []
+
+    candles = [
+        (int(item[0]), float(item[1]), float(item[2]), float(item[3]), float(item[4]), float(item[5]))
+        for item in data
+    ]
+
+    return candles
         
 def get_futures_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
@@ -103,27 +124,6 @@ def get_futures_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
         data['close'],
         data['vol']
     ))
-
-    return candles
-
-def get_spot_candles(symbol, interval='4h', limit= EMA_LONG_PERIOD + 1):
-    url = f"https://api.mexc.com/api/v3/klines"
-    params = {'symbol': symbol, 'interval': interval, 'limit': limit}
-    response = requests.get(url, params=params)
-
-    if response.status_code != 200:
-        print(f"Failed to fetch spot candles for {symbol}: {response.text}")
-        return []
-
-    data = response.json()
-    if not data or len(data[0]) < 6:
-        print(f"Unexpected spot candle structure for {symbol}")
-        return []
-
-    candles = [
-        (int(item[0]), float(item[1]), float(item[2]), float(item[3]), float(item[4]), float(item[5]))
-        for item in data
-    ]
 
     return candles
         
