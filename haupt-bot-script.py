@@ -309,8 +309,10 @@ def main():
         candles_4h = get_candles(sym_spot,"spot",interval="4H",limit=7)
         print(f"{sym_spot} {candles_4h}")
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        print(f"{sym_spot} {candles_12h}")
+        #print(f"{sym_spot} {candles_12h}")
         candles_1d = get_candles(sym_spot,"spot",interval="1D")
+        print(f"{sym_spot} {candles_1d}")
+        
         if len(candles_4h) < 14:
             continue 
         
@@ -330,10 +332,8 @@ def main():
         #candles_15m = get_candles(symbol, interval='Min15',limit=3)
         candles_1h = get_candles(symbol, "futures",interval='Min60')
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
-        print(f"{symbol} {candles_4h}")
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(symbol,"futures",interval="1D")
-        print(f"{symbol} {candles_1d}")
         candles_1W = get_candles(symbol,"futures",interval='Week1')
         candles_1M = get_candles(symbol,"futures",interval='Month1')
 
