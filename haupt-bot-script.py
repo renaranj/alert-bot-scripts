@@ -229,7 +229,7 @@ def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smoo
     d = k.rolling(smooth_d).mean()
     return k.iloc[-1] * 100, d.iloc[-1] * 100
 
-def detect_candle_patterns(candles, pattern_name="4H):
+def detect_candle_patterns(candles, pattern_name="4H"):
     if len(candles) < 3:
         return ""
     messages = []
