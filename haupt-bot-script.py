@@ -279,17 +279,17 @@ def send_telegram_alert(message):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
+    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
     sym_fut = get_futures_open_symbols()
     sym_spot = get_spot_open_symbols()
     print(f"{sym_spot}")
     print(f"{sym_fut}")    
-    symbols = get_perpetual_symbols()
+    #symbols = get_perpetual_symbols()
 
     for sym_spot in sym_spot:
-        candles_4h = get_futures_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
+        candles_4h = get_futures_candles(sym_spot,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_futures_12h_candles_from_4h(candles_4h)
-        candles_1d = get_futures_candles(symbol,interval='Day1')
+        candles_1d = get_futures_candles(sym_spot,interval='Day1')
         if len(candles_4h) < 14:
             continue 
         
