@@ -302,8 +302,10 @@ def main():
     #symbols = get_perpetual_symbols()
 
     for sym_spot in sym_spots:
-        candles_4h = get_candles(sym_spot,"spot",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+        candles_4h = get_candles(sym_spot,"spot",interval="4H",limit=7)
+        print(f"{candles_4h}")
         candles_12h = get_12h_candles_from_4h(candles_4h)
+        print(f"{candles_12h}")
         candles_1d = get_candles(sym_spot,"spot",interval="1D")
         if len(candles_4h) < 14:
             continue 
