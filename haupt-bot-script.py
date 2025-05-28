@@ -259,6 +259,7 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     total_range = h - l
     half_body = total_range/2 + l
     dritte_body = total_range/3 + l
+    d3_4_body = h - dritte_body
 
     if total_range == 0:
         return "\n".join(messages)
@@ -275,7 +276,7 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     elif o < half_body and c < half_body:
         messages.append(f"🔻 Inverted Hammer on {pattern_name}")
     # Spinning Top
-    elif o > dritte_body and c > dritte_body and o < dritte_body * 2 and c < dritte_body * 2:
+    elif o > dritte_body and c > dritte_body and o < d3_4_body and c < d3_4_body:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
 
     return "\n".join(messages)
