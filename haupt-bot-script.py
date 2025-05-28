@@ -290,7 +290,7 @@ def main():
         candles_4h = get_futures_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_futures_12h_candles_from_4h(candles_4h)
         candles_1d = get_futures_candles(symbol,interval='Day1')
-         if len(candles_4h) < 14:
+        if len(candles_4h) < 14:
             continue 
         
         candelsticks_msg = ""
