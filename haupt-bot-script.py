@@ -23,41 +23,33 @@ def get_perpetual_symbols():
     res = requests.get(url).json()
     return [s["symbol"] for s in res["data"] if s["quoteCoin"] == "USDT"]
 
-def get_spot_open_symbols():
+def get_open_symbols(market_type="spot"):
+ if market_type == "spot":
     url = "https://api.mexc.com/api/v3/account"
     timestamp = int(time.time() * 1000)
-
     query_string = f"timestamp={timestamp}"
     signature = hmac.new(
         API_SECRET.encode('utf-8'),
         query_string.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
-
     headers = {
         "X-MEXC-APIKEY": API_KEY
     }
-
     full_url = f"{url}?{query_string}&signature={signature}"
     response = requests.get(full_url, headers=headers)
-
     if response.status_code != 200:
         print("Spot balance fetch failed:", response.status_code)
         return []
-
     balances = response.json().get("balances", [])
-    open_spot = [b["asset"] for b in balances if float(b["free"]) + float(b["locked"]) > 0]
-    return open_spot
-        
-def get_futures_open_symbols():
+    return [b["asset"] for b in balances if float(b["free"]) + float(b["locked"]) > 0]    
+ elif market_type == "futures":
     url = "https://contract.mexc.com/api/v1/private/position/open_positions"
     timestamp = str(int(time.time() * 1000))
-
     params = {
         "api_key": API_KEY,
         "req_time": timestamp,
     }
-
     query_string = '&'.join([f"{key}={params[key]}" for key in sorted(params)])
     signature = hmac.new(
         API_SECRET.encode('utf-8'),
@@ -65,57 +57,57 @@ def get_futures_open_symbols():
         hashlib.sha256
     ).hexdigest()
     params["sign"] = signature
-
     headers = {
         "Content-Type": "application/x-www-form-urlencoded"
     }
-
     response = requests.post(url, data=params, headers=headers)
     if response.status_code != 200:
         print("Futures position fetch failed:", response.status_code)
         return []
-
     data = response.json().get("data", [])
-    open_futures = [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
-    return open_futures
+    return[item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
+ else:
+    print("Invalid market_type. Use 'spot' or 'futures'.")
+    return []
 
-def get_spot_candles(symbol, interval='4h', limit= EMA_LONG_PERIOD + 1):
+def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIOD + 1):
+ if market_type == "spot":
+    if interval == "4H":
+         interval = '4h'
+    elif interval == "1D"
+         interval = '1d'
     url = f"https://api.mexc.com/api/v3/klines"
     params = {'symbol': symbol, 'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
-
     if response.status_code != 200:
         print(f"Failed to fetch spot candles for {symbol}: {response.text}")
         return []
-
     data = response.json()
     if not data or len(data[0]) < 6:
         print(f"Unexpected spot candle structure for {symbol}")
         return []
-
     candles = [
         (int(item[0]), float(item[1]), float(item[2]), float(item[3]), float(item[4]), float(item[5]))
         for item in data
     ]
-
-    return candles
-        
-def get_futures_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
+    return candles        
+ elif market_type == "futures":
+    if interval == "4H":
+         interval = 'Hour4'
+    elif interval == "1D"
+         interval = 'Day1'
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
     params = {'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
     if response.status_code != 200:
         print(f"Failed to fetch candles for {symbol}")
         return []
-
     result = response.json()
     data = result.get('data', {})
-    
     # We'll zip the columns into OHLC-style rows
     if not data or not all(k in data for k in ['time', 'close']):
         print(f"Unexpected candle structure for {symbol}")
         return []
-
     candles = list(zip(
         data['time'],
         data['open'],
@@ -124,10 +116,31 @@ def get_futures_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
         data['close'],
         data['vol']
     ))
-
     return candles
+ else:
+    print("Invalid market_type. Use 'spot' or 'futures'.")
+    return []
         
-def get_futures_12h_candles_from_4h(candles_4h):
+def get_12h_candles_from_4h(candles_4h, market_type="spot"):
+ if market_type == "spot":
+    if len(candles_4h) < 3:
+        return []
+    candles_12h = []
+    # Group each 3x 4H candles into one 12H candle
+    for i in range(0, len(candles_4h) - 2, 3):
+        c1 = candles_4h[i]
+        c2 = candles_4h[i + 1]
+        c3 = candles_4h[i + 2]
+
+        t_open = c1[0]                          # Timestamp of first 4H candle
+        o = c1[1]                               # Open of first candle
+        h = max(c1[2], c2[2], c3[2])            # Highest high
+        l = min(c1[3], c2[3], c3[3])            # Lowest low
+        c = c3[4]                               # Close of last 4H candle
+        v = c1[5] + c2[5] + c3[5]               # Combined volume
+        candles_12h.append((t_open, o, h, l, c, v))
+    return candles_12h
+ elif market_type == "futures":
     candles_12h = []
     for i in range(0, len(candles_4h) - 2, 3):
         group = candles_4h[i:i + 3]
@@ -139,7 +152,6 @@ def get_futures_12h_candles_from_4h(candles_4h):
         lows = [float(g[3]) for g in group]
         closes = [float(g[4]) for g in group]
         volumes = [float(g[5]) for g in group]
-
         candle_12h = (
             times[0],             # timestamp of first 4H candle
             opens[0],             # open of first
@@ -150,6 +162,9 @@ def get_futures_12h_candles_from_4h(candles_4h):
         )
         candles_12h.append(candle_12h)
     return candles_12h
+ else:
+        print("Invalid market_type. Use 'spot' or 'futures'.")
+        return []
 
 def calculate_rsi(closes, period=14):
     if len(closes) < period + 1:
@@ -214,7 +229,7 @@ def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smoo
     d = k.rolling(smooth_d).mean()
     return k.iloc[-1] * 100, d.iloc[-1] * 100
 
-def detect_candle_patterns(candles, pattern_name="4H"):
+def detect_candle_patterns(candles, pattern_name="4H):
     if len(candles) < 3:
         return ""
     messages = []
@@ -280,16 +295,16 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
-    sym_fut = get_futures_open_symbols()
-    sym_spot = get_spot_open_symbols()
+    sym_spots = get_open_symbols('spot')
+    sym_futs = get_open_symbols('futures')
     print(f"{sym_spot}")
     print(f"{sym_fut}")    
     #symbols = get_perpetual_symbols()
 
-    for sym_spot in sym_spot:
-        candles_4h = get_futures_candles(sym_spot,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
-        candles_12h = get_futures_12h_candles_from_4h(candles_4h)
-        candles_1d = get_futures_candles(sym_spot,interval='Day1')
+    for sym_spot in sym_spots:
+        candles_4h = get_candles(sym_spot,"spot",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+        candles_12h = get_12h_candles_from_4h(candles_4h)
+        candles_1d = get_candles(sym_spot,"spot",interval="1D")
         if len(candles_4h) < 14:
             continue 
         
@@ -304,15 +319,15 @@ def main():
            print(f"{sym_spot} \n{candelsticks_msg}")
            #send_telegram_alert(candelsticks_msg)
         
-    for symbols in symbols:
+    for symbol in symbols:
         #candles_5m = get_candles(symbol, interval='Min5',limit=3)
         #candles_15m = get_candles(symbol, interval='Min15',limit=3)
-        candles_1h = get_futures_candles(symbol, interval='Min60')
-        candles_4h = get_futures_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
-        candles_12h = get_futures_12h_candles_from_4h(candles_4h)
-        candles_1d = get_futures_candles(symbol,interval='Day1')
-        candles_1W = get_futures_candles(symbol,interval='Week1')
-        candles_1M = get_futures_candles(symbol,interval='Month1')
+        candles_1h = get_candles(symbol, "futures",interval='Min60')
+        candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+        candles_12h = get_12h_candles_from_4h(candles_4h)
+        candles_1d = get_candles(symbol,"futures",interval="1D")
+        candles_1W = get_candles(symbol,"futures",interval='Week1')
+        candles_1M = get_candles(symbol,"futures",interval='Month1')
 
         if len(candles_4h) < 14:
             continue 
