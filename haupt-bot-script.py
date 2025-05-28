@@ -260,6 +260,7 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     half_body = total_range/2 + l
     dritte_body = total_range/3 + l
     d3_4_body = h - dritte_body
+    d61_8_boddy = total_range * 0.3720 + l
 
     if total_range == 0:
         return "\n".join(messages)
@@ -270,7 +271,7 @@ def detect_candle_patterns(candles, pattern_name="4H"):
 
     # Hammer
     #if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
-    if o > half_body and c > half_body:
+    if o > d61_8_boddy and c > d61_8_boddy :
         messages.append(f"🔨 Hammer detected on {pattern_name}")
     # Inverted Hammer
     elif o < half_body and c < half_body:
