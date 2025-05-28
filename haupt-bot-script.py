@@ -72,9 +72,9 @@ def get_open_symbols(market_type="spot"):
 
 def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIOD + 1):
  if market_type == "spot":
-    if interval == "4H":
+    if interval == '4H':
          interval = '4h'
-    elif interval == "1D"
+    elif interval == '1D':
          interval = '1d'
     url = f"https://api.mexc.com/api/v3/klines"
     params = {'symbol': symbol, 'interval': interval, 'limit': limit}
@@ -92,9 +92,9 @@ def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIO
     ]
     return candles        
  elif market_type == "futures":
-    if interval == "4H":
+    if interval == '4H':
          interval = 'Hour4'
-    elif interval == "1D"
+    elif interval == '1D':
          interval = 'Day1'
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
     params = {'interval': interval, 'limit': limit}
