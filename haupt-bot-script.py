@@ -297,8 +297,8 @@ def main():
     symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
     sym_spots = get_open_symbols('spot')
     sym_futs = get_open_symbols('futures')
-    print(f"{sym_spot}")
-    print(f"{sym_fut}")    
+    print(f"{sym_spots}")
+    print(f"{sym_futs}")    
     #symbols = get_perpetual_symbols()
 
     for sym_spot in sym_spots:
