@@ -297,7 +297,8 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
-    sym_spots = get_open_symbols("spot")
+    sym_spots = [ "JASMYUSDT", "FARTCOINUSDT", "KASUSDT", "COOKIEUSDT", "RIZUSDT" ]
+    #sym_spots = get_open_symbols("spot")
     sym_futs = get_open_symbols("futures")
     print(f"{sym_spots}")
     print(f"{sym_futs}")    
