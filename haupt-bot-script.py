@@ -127,7 +127,7 @@ def get_futures_candles(symbol, interval='Hour4', limit= EMA_LONG_PERIOD + 1):
 
     return candles
         
-def get_12h_candles_from_4h(candles_4h):
+def get_futures_12h_candles_from_4h(candles_4h):
     candles_12h = []
     for i in range(0, len(candles_4h) - 2, 3):
         group = candles_4h[i:i + 3]
@@ -280,17 +280,36 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
-    symbols = get_futures_open_symbols()
-    spot = get_spot_open_symbols()
-    print(f"{spot}")
-    print(f"{symbols}")    
-    #symbols = get_perpetual_symbols()
-    for symbol in symbols:
+    sym_fut = get_futures_open_symbols()
+    sym_spot = get_spot_open_symbols()
+    print(f"{sym_spot}")
+    print(f"{sym_fut}")    
+    symbols = get_perpetual_symbols()
+
+    for sym_spot in sym_spot:
+        candles_4h = get_futures_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
+        candles_12h = get_futures_12h_candles_from_4h(candles_4h)
+        candles_1d = get_futures_candles(symbol,interval='Day1')
+         if len(candles_4h) < 14:
+            continue 
+        
+        candelsticks_msg = ""
+        #if hour in [0, 4, 8, 12, 16, 20]:
+        candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
+        #if hour in [0, 12]:
+        candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
+       # if hour == 0:
+        candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
+        if candelsticks_msg:
+           print(f"{sym_spot} \n{candelsticks_msg}")
+           #send_telegram_alert(candelsticks_msg)
+        
+    for symbols in symbols:
         #candles_5m = get_candles(symbol, interval='Min5',limit=3)
         #candles_15m = get_candles(symbol, interval='Min15',limit=3)
         candles_1h = get_futures_candles(symbol, interval='Min60')
         candles_4h = get_futures_candles(symbol,interval='Hour4',limit=(EMA_LONG_PERIOD * 3))
-        candles_12h = get_12h_candles_from_4h(candles_4h)
+        candles_12h = get_futures_12h_candles_from_4h(candles_4h)
         candles_1d = get_futures_candles(symbol,interval='Day1')
         candles_1W = get_futures_candles(symbol,interval='Week1')
         candles_1M = get_futures_candles(symbol,interval='Month1')
