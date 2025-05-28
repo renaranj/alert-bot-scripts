@@ -260,8 +260,8 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     #d1_2_body = total_range/2 + l
     d1_3_body = total_range/3 + l
     d3_4_body = h - total_range/3
-    f61_8_boddy = h - total_range * 61.8
-    f38_2_boddy = l + total_range * 38.2
+    f61_8_boddy = h - total_range * 0.618
+    f38_2_boddy = l + total_range * 0.382
 
 
     if total_range == 0:
