@@ -257,24 +257,25 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     upper_wick = h - max(c, o)
     lower_wick = min(c, o) - l
     total_range = h - l
-    halb_body = h-l/2 + l
+    half_body = total_range/2 + l
+    dritte_body = total_range/3 + l
 
     if total_range == 0:
         return "\n".join(messages)
 
-    body_ratio = body / total_range
-    upper_ratio = upper_wick / total_range
-    lower_ratio = lower_wick / total_range
+    #body_ratio = body / total_range
+    #upper_ratio = upper_wick / total_range
+    #lower_ratio = lower_wick / total_range
 
     # Hammer
     #if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
-    if o > halb_body and c > halb_body:
+    if o > half_body and c > half_body:
         messages.append(f"🔨 Hammer detected on {pattern_name}")
     # Inverted Hammer
-    elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
+    elif o < half_body and c < half_body:
         messages.append(f"🔻 Inverted Hammer on {pattern_name}")
     # Spinning Top
-    elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
+    elif o > dritte_body and c > dritte_body and o < dritte_body * 2 and c < dritte_body * 2:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
 
     return "\n".join(messages)
@@ -296,13 +297,12 @@ def send_telegram_alert(message):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT", "AVAX_USDT", "TRX_USDT", "XRP_USDT", "BCH_USDT", "LTC_USDT", "BNB_USDT", "SUI_USDT", "DOGE_USDT" , "XLM_USDT", "PEPE_USDT", "ORBS_USDT" ]
-    symbols = []
+    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
     sym_spots = [ "JASMYUSDT", "FARTCOINUSDT", "KASUSDT", "COOKIEUSDT", "RIZUSDT", "POPCATUSDT", "PIPPINUSDT" ]
     #sym_spots = get_open_symbols("spot")
-    sym_futs = get_open_symbols("futures")
+    #sym_futs = get_open_symbols("futures")
     print(f"{sym_spots}")
-    print(f"{sym_futs}")    
+    #print(f"{sym_futs}")    
     #symbols = get_perpetual_symbols()
 
     for sym_spot in sym_spots:
@@ -330,8 +330,10 @@ def main():
         #candles_15m = get_candles(symbol, interval='Min15',limit=3)
         candles_1h = get_candles(symbol, "futures",interval='Min60')
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+        print(f"{symbol} {candles_4h}")
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(symbol,"futures",interval="1D")
+        print(f"{symbol} {candles_1d}")
         candles_1W = get_candles(symbol,"futures",interval='Week1')
         candles_1M = get_candles(symbol,"futures",interval='Month1')
 
