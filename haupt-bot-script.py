@@ -55,28 +55,23 @@ def get_open_symbols(market_type="spot"):
     url = "https://contract.mexc.com/api/v1/private/position/open_positions"
     timestamp = str(int(time.time() * 1000))
     object_string = API_KEY + timestamp
-
     signature = hmac.new(
         API_SECRET.encode('utf-8'),
         object_string.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
-    print (f"signature {signature}, object_string {object_string}")
     headers = {
         "ApiKey": API_KEY,
         "Request-Time": timestamp,
         "Signature": signature,
         "Content-Type": "application/json"
     }
-
     response = requests.get(url, headers=headers)
-    print("Response:", response.status_code, response.text)
     if response.status_code != 200:
         print("Futures request failed:", response.status_code, response.text)
         return []
     data = response.json().get("data", [])
-    return [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
-         
+    return [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]         
  else:
     print("Invalid market_type. Use 'spot' or 'futures'.")
     return []
@@ -133,7 +128,7 @@ def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIO
     return []
         
 def get_12h_candles_from_4h(candles_4h):
-    if len(candles_4h) < 6:
+    if len(candles_4h) < 4:
         return []
 
     candles_12h = []
@@ -282,7 +277,23 @@ def detect_candle_patterns(candles, pattern_name="4H"):
         messages.append(f"🌀 Spinning Top on {pattern_name}")
 
     return "\n".join(messages)
-    
+
+def process_symbols_for_patterns(symbols, market_type="spot"):
+    for symbol in symbols:
+       candles_4h = get_candles(symbols,market_type,interval="4H",limit=7)
+       candles_12h = get_12h_candles_from_4h(candles_4h)
+       candles_1d = get_candles(sym_spot,market_type,interval="1D",limit=3)
+       
+       candelsticks_msg = ""
+       if hour in [0, 4, 8, 12, 16, 20]:
+       candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
+       if hour in [0, 12]:
+       candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
+       if hour == 0:
+       candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
+       if candelsticks_msg:
+          send_telegram_alert(candelsticks_msg)
+        
 def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
@@ -301,45 +312,18 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
-    #sym_spots = [ "JASMYUSDT", "FARTCOINUSDT", "KASUSDT", "COOKIEUSDT", "RIZUSDT", "POPCATUSDT", "PIPPINUSDT" ]
+    symbols = get_all_perpetual_symbols()
     sym_spots = get_open_symbols("spot")
     sym_futs = get_open_symbols("futures")
-    #symbols = get_all_perpetual_symbols()
-    #print(f"{sym_spots}")
-    n = 10
-    if sym_futs:
-     print("Last futures symbols:", sym_futs[-n:])
-    else:
-     print("No open futures positions.")
-
-    for sym_spot in sym_spots:
-        candles_4h = get_candles(sym_spot,"spot",interval="4H",limit=12)
-        #print(f"{sym_spot} {candles_4h}")
+    process_symbols_for_patterns(sym_spots, 'spot')
+    process_symbols_for_patterns(sym_futs, 'futures')
+   
+    for symbol in symbols:
+        candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        #print(f"{sym_spot} {candles_12h}")
-        candles_1d = get_candles(sym_spot,"spot",interval="1D",limit=3)
-        #print(f"{sym_spot} {candles_1d}")
-        
-        if len(candles_4h) < 12:
-            continue 
-        
-        candelsticks_msg = ""
-        #if hour in [0, 4, 8, 12, 16, 20]:
-        candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
-        #if hour in [0, 12]:
-        candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
-       # if hour == 0:
-        candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
-        if candelsticks_msg:
-           print(f"{sym_spot} \n{candelsticks_msg}")
-           #send_telegram_alert(candelsticks_msg)
-        
-    for sym_fut in sym_futs:
-        candles_4h = get_candles(sym_fut,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
-        candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(sym_fut,"futures",interval="1D")
-        candles_1W = get_candles(sym_fut,"futures",interval='Week1')
-        candles_1M = get_candles(sym_fut,"futures",interval='Month1')
+        candles_1d = get_candles(symbols,"futures",interval="1D")
+        candles_1W = get_candles(symbols,"futures",interval='Week1')
+        candles_1M = get_candles(symbols,"futures",interval='Month1')
 
         if len(candles_4h) < 14:
             continue 
@@ -349,19 +333,6 @@ def main():
         closes_1d = [float(c[4]) for c in candles_1d]
         closes_1W = [float(c[4]) for c in candles_1W]
         closes_1M = [float(c[4]) for c in candles_1M]
-
-         #Candelsticks pattern erkennung
-        candelsticks_msg = ""
-        #if hour in [0, 4, 8, 12, 16, 20]:
-        candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
-        #if hour in [0, 12]:
-        candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
-       # if hour == 0:
-        candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
-        if candelsticks_msg:
-                #candelsticks_msg += candelsticks_msg
-           print(f"{sym_fut} \n{candelsticks_msg}")
-           #send_telegram_alert(candelsticks_msg)
 
         change_pct_1d = 0
         change_pct_1W = 0
@@ -395,9 +366,9 @@ def main():
         is_touch_ema_200 = touch_ema_200(candles_4h,closes_12h,closes_1d)
                 
         if change_pct_4h > PRICE_CHANGE_THRESHOLD and rsi_4h and rsi_4h > RSI_THRESHOLD:
-            #print(f"{symbol}")
             message = f"🚨 {sym_fut}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\nema200:{is_touch_ema_200} W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
             #send_telegram_alert(message)
+            print(f"{message}")
 
 if __name__ == "__main__":
     main()
