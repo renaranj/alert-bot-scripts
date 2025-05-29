@@ -53,47 +53,44 @@ def get_open_symbols(market_type="spot"):
     return open_assets
  elif market_type == "futures":
     url = "https://contract.mexc.com/api/v1/private/position/open_positions"
-
     api_key = API_KEY
     api_secret = API_SECRET
-    timestamp = str(int(time.time() * 1000))
+    req_time = str(int(time.time() * 1000))
 
-    body = "{}"  # Empty JSON for this endpoint
+    # Parameters for V1 request
+    params = {
+        "api_key": api_key,
+        "req_time": req_time
+    }
 
-    # Step 1: Construct the string to sign
-    message = api_key + timestamp + body
+    # Create the sorted query string
+    sorted_query = '&'.join([f"{key}={params[key]}" for key in sorted(params)])
 
-    # Step 2: Create the signature
+    # Create the signature
     signature = hmac.new(
         api_secret.encode("utf-8"),
-        message.encode("utf-8"),
+        sorted_query.encode("utf-8"),
         hashlib.sha256
     ).hexdigest()
 
-    # Step 3: Add headers
-    headers = {
-        "ApiKey": api_key,
-        "Request-Time": timestamp,
-        "Signature": signature,
-        "Content-Type": "application/json"
-    }
+    # Append signature to params
+    params["sign"] = signature
 
-    # Step 4: Send request
-    response = requests.post(url, data=body, headers=headers)
+    # GET request
+    response = requests.get(url, params=params)
 
     if response.status_code != 200:
         print("Futures request failed:", response.status_code, response.text)
         return []
 
     result = response.json()
-
     if not result.get("success"):
         print("API Error:", result.get("message", "Unknown error"))
         return []
 
-    # Step 5: Extract symbols
+    # Extract active symbols (with open volume)
     data = result.get("data", [])
-    return [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
+    return [item["symbol"].replace("_", "") for item in data if float(item.get("holdVol", 0)) > 0]
 
 def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIOD + 1):
  if market_type == "spot":
