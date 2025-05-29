@@ -282,7 +282,7 @@ def process_symbols_for_patterns(symbols, market_type="spot"):
     for symbol in symbols:
        candles_4h = get_candles(symbols,market_type,interval="4H",limit=7)
        candles_12h = get_12h_candles_from_4h(candles_4h)
-       candles_1d = get_candles(sym_spot,market_type,interval="1D",limit=3)
+       candles_1d = get_candles(symbols,market_type,interval="1D",limit=3)
        
        candelsticks_msg = ""
        if hour in [0, 4, 8, 12, 16, 20]:
