@@ -270,9 +270,9 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     if total_range == 0:
         return "\n".join(messages)
 
-    #body_ratio = body / total_range
-    #upper_ratio = upper_wick / total_range
-    #lower_ratio = lower_wick / total_range
+    body_ratio = body / total_range
+    upper_ratio = upper_wick / total_range
+    lower_ratio = lower_wick / total_range
 
     # Hammer
     if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3 and corp_bottom >= fib_618:
