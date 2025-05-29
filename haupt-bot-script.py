@@ -392,7 +392,7 @@ def main():
             macd_1d_condition = macd_1d > 0 and signal_1d > 0 and hist_1d > 0
             #print(f"{symbol} MACD: {macd_1d:.3f}, Signal: {signal_1d:.3f}, Histogram: {hist_1d:.3f}")
 
-        is_touch_ema_200 = touch_ema_200(candles_1h,closes_12h,closes_1d)
+        is_touch_ema_200 = touch_ema_200(candles_4h,closes_12h,closes_1d)
                 
         if change_pct_4h > PRICE_CHANGE_THRESHOLD and rsi_4h and rsi_4h > RSI_THRESHOLD:
             #print(f"{symbol}")
