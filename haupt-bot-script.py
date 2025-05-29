@@ -48,7 +48,7 @@ def get_open_symbols(market_type="spot"):
         free = float(b.get("free", 0))
         locked = float(b.get("locked", 0))
         if free + locked > 0 and asset != "USDT":
-        open_assets.append(asset + "USDT")
+           open_assets.append(asset + "USDT")
     return open_assets
  elif market_type == "futures":
     url = "https://contract.mexc.com/api/v1/private/position/open_positions"
