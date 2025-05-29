@@ -279,10 +279,12 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     return "\n".join(messages)
 
 def process_symbols_for_patterns(symbols, market_type="spot"):
+    now = datetime.now(timezone.utc)
+    hour, minute = now.hour, now.minute
     for symbol in symbols:
-       candles_4h = get_candles(symbols,market_type,interval="4H",limit=7)
+       candles_4h = get_candles(symbol,market_type,interval="4H",limit=7)
        candles_12h = get_12h_candles_from_4h(candles_4h)
-       candles_1d = get_candles(symbols,market_type,interval="1D",limit=3)
+       candles_1d = get_candles(symbol,market_type,interval="1D",limit=3)
        
        candelsticks_msg = ""
        if hour in [0, 4, 8, 12, 16, 20]:
@@ -309,8 +311,7 @@ def send_telegram_alert(message):
         print(f"Error sending Telegram alert: {e}")
 
 def main():
-    now = datetime.now(timezone.utc)
-    hour, minute = now.hour, now.minute
+
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
     symbols = get_all_perpetual_symbols()
     sym_spots = get_open_symbols("spot")
