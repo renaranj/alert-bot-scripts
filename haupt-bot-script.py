@@ -311,10 +311,13 @@ def main():
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
     #sym_spots = [ "JASMYUSDT", "FARTCOINUSDT", "KASUSDT", "COOKIEUSDT", "RIZUSDT", "POPCATUSDT", "PIPPINUSDT" ]
     sym_spots = get_open_symbols("spot")
-    symbols = get_open_symbols("futures")
+    sym_futs = get_open_symbols("futures")
     #print(f"{sym_spots}")
-    #print(f"{sym_futs}")    
-    #symbols = get_perpetual_symbols()
+    n = 10
+    if sym_futs:
+     print("Last futures symbols:", sym_futs[-n:])
+    else:
+     print("No open futures positions.")
 
     for sym_spot in sym_spots:
         candles_4h = get_candles(sym_spot,"spot",interval="4H",limit=12)
@@ -338,12 +341,12 @@ def main():
            print(f"{sym_spot} \n{candelsticks_msg}")
            #send_telegram_alert(candelsticks_msg)
         
-    for symbol in symbols:
-        candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+    for sym_fut in sym_futs:
+        candles_4h = get_candles(sym_fut,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(symbol,"futures",interval="1D")
-        candles_1W = get_candles(symbol,"futures",interval='Week1')
-        candles_1M = get_candles(symbol,"futures",interval='Month1')
+        candles_1d = get_candles(sym_fut,"futures",interval="1D")
+        candles_1W = get_candles(sym_fut,"futures",interval='Week1')
+        candles_1M = get_candles(sym_fut,"futures",interval='Month1')
 
         if len(candles_4h) < 14:
             continue 
@@ -364,7 +367,7 @@ def main():
         candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
         if candelsticks_msg:
                 #candelsticks_msg += candelsticks_msg
-           print(f"{symbol} \n{candelsticks_msg}")
+           print(f"{sym_fut} \n{candelsticks_msg}")
            #send_telegram_alert(candelsticks_msg)
 
         change_pct_1d = 0
@@ -400,7 +403,7 @@ def main():
                 
         if change_pct_4h > PRICE_CHANGE_THRESHOLD and rsi_4h and rsi_4h > RSI_THRESHOLD:
             #print(f"{symbol}")
-            message = f"🚨 {symbol}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\nema200:{is_touch_ema_200} W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
+            message = f"🚨 {sym_fut}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\nema200:{is_touch_ema_200} W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
             #send_telegram_alert(message)
 
 if __name__ == "__main__":
