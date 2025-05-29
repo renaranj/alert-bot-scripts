@@ -309,20 +309,20 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
-    sym_spots = [ "JASMYUSDT", "FARTCOINUSDT", "KASUSDT", "COOKIEUSDT", "RIZUSDT", "POPCATUSDT", "PIPPINUSDT" ]
-    #sym_spots = get_open_symbols("spot")
+    #sym_spots = [ "JASMYUSDT", "FARTCOINUSDT", "KASUSDT", "COOKIEUSDT", "RIZUSDT", "POPCATUSDT", "PIPPINUSDT" ]
+    sym_spots = get_open_symbols("spot")
     symbols = get_open_symbols("futures")
-    print(f"{sym_spots}")
+    #print(f"{sym_spots}")
     #print(f"{sym_futs}")    
     #symbols = get_perpetual_symbols()
 
     for sym_spot in sym_spots:
         candles_4h = get_candles(sym_spot,"spot",interval="4H",limit=12)
-        print(f"{sym_spot} {candles_4h}")
+        #print(f"{sym_spot} {candles_4h}")
         candles_12h = get_12h_candles_from_4h(candles_4h)
         #print(f"{sym_spot} {candles_12h}")
         candles_1d = get_candles(sym_spot,"spot",interval="1D",limit=3)
-        print(f"{sym_spot} {candles_1d}")
+        #print(f"{sym_spot} {candles_1d}")
         
         if len(candles_4h) < 12:
             continue 
