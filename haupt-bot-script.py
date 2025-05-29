@@ -275,12 +275,14 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     lower_ratio = lower_wick / total_range
 
     # Hammer
-    if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3 and corp_bottom >= fib_618:
+    if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
+    #if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3 and corp_bottom >= fib_618:
     #if min(c, o) > f61_8_boddy :
         messages.append(f"🔨 Hammer detected on {pattern_name}")
     # Inverted Hammer
     #elif max(c, o) < f38_2_boddy :
-    elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3 and corp_top <= fib_618:
+    #elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3 and corp_top <= fib_618:
+    elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
         messages.append(f"🔻 Inverted Hammer on {pattern_name}")
     # Spinning Top
     #elif min(c, o) >  d1_3_body and max(c, o) < d3_4_body:
