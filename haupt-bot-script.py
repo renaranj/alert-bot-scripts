@@ -339,9 +339,6 @@ def main():
            #send_telegram_alert(candelsticks_msg)
         
     for symbol in symbols:
-        #candles_5m = get_candles(symbol, interval='Min5',limit=3)
-        #candles_15m = get_candles(symbol, interval='Min15',limit=3)
-        candles_1h = get_candles(symbol, "futures",interval='Min60')
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(symbol,"futures",interval="1D")
@@ -350,8 +347,7 @@ def main():
 
         if len(candles_4h) < 14:
             continue 
-        
-        closes_1h = [float(c[4]) for c in candles_4h]
+                
         closes_4h = [float(c[4]) for c in candles_4h]
         closes_12h = [float(c[4]) for c in candles_12h]
         closes_1d = [float(c[4]) for c in candles_1d]
