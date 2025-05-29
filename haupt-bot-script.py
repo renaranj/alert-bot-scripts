@@ -43,6 +43,7 @@ def get_open_symbols(market_type="spot"):
         return []
     balances = response.json().get("balances", [])
     #return [b["asset"] + "USDT" for b in balances if float(b["free"]) + float(b["locked"]) > 0] 
+    open_assets = [] 
     for b in balances:
         asset = b["asset"]
         free = float(b.get("free", 0))
