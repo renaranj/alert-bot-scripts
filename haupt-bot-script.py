@@ -42,7 +42,14 @@ def get_open_symbols(market_type="spot"):
         print("Spot balance fetch failed:", response.status_code)
         return []
     balances = response.json().get("balances", [])
-    return [b["asset"] + "USDT" for b in balances if float(b["free"]) + float(b["locked"]) > 0]    
+    #return [b["asset"] + "USDT" for b in balances if float(b["free"]) + float(b["locked"]) > 0] 
+    for b in balances:
+        asset = b["asset"]
+        free = float(b.get("free", 0))
+        locked = float(b.get("locked", 0))
+        if free + locked > 0 and asset != "USDT":
+        open_assets.append(asset + "USDT")
+    return open_assets
  elif market_type == "futures":
     url = "https://contract.mexc.com/api/v1/private/position/open_positions"
     timestamp = str(int(time.time() * 1000))
