@@ -286,13 +286,13 @@ def process_symbols_for_patterns(symbols, market_type="spot"):
        
        candelsticks_msg = ""
        if hour in [0, 4, 8, 12, 16, 20]:
-       candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
+        candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
        if hour in [0, 12]:
-       candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
+        candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
        if hour == 0:
-       candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
+        candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
        if candelsticks_msg:
-          send_telegram_alert(candelsticks_msg)
+        send_telegram_alert(candelsticks_msg)
         
 def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
