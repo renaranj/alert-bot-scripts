@@ -53,33 +53,47 @@ def get_open_symbols(market_type="spot"):
     return open_assets
  elif market_type == "futures":
     url = "https://contract.mexc.com/api/v1/private/position/open_positions"
+
+    api_key = API_KEY
+    api_secret = API_SECRET
     timestamp = str(int(time.time() * 1000))
-    params = {
-        "api_key": API_KEY,
-        "req_time": timestamp,
-    }
-    query_string = '&'.join([f"{key}={params[key]}" for key in sorted(params)])
+
+    body = "{}"  # Empty JSON for this endpoint
+
+    # Step 1: Construct the string to sign
+    message = api_key + timestamp + body
+
+    # Step 2: Create the signature
     signature = hmac.new(
-        API_SECRET.encode('utf-8'),
-        query_string.encode('utf-8'),
+        api_secret.encode("utf-8"),
+        message.encode("utf-8"),
         hashlib.sha256
     ).hexdigest()
-    params["sign"] = signature
+
+    # Step 3: Add headers
     headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
+        "ApiKey": api_key,
+        "Request-Time": timestamp,
+        "Signature": signature,
+        "Content-Type": "application/json"
     }
-    response = requests.post(url, data=params, headers=headers)
+
+    # Step 4: Send request
+    response = requests.post(url, data=body, headers=headers)
+
     if response.status_code != 200:
-        print("Futures position fetch failed:", response.status_code)
+        print("Futures request failed:", response.status_code, response.text)
         return []
-    data = response.json().get("data", [])
-    print("Futures response JSON:", response.json())
-    for item in data:
-        print(item["symbol"], "holdVol:", item.get("holdVol"))
-    return[item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
- else:
-    print("Invalid market_type. Use 'spot' or 'futures'.")
-    return []
+
+    result = response.json()
+
+    if not result.get("success"):
+        print("API Error:", result.get("message", "Unknown error"))
+        return []
+
+    # Step 5: Extract symbols
+    data = result.get("data", [])
+    return [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
 
 def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIOD + 1):
  if market_type == "spot":
