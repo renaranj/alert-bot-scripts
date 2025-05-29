@@ -53,44 +53,33 @@ def get_open_symbols(market_type="spot"):
     return open_assets
  elif market_type == "futures":
     url = "https://contract.mexc.com/api/v1/private/position/open_positions"
-    api_key = API_KEY
-    api_secret = API_SECRET
-    req_time = str(int(time.time() * 1000))
+    timestamp = str(int(time.time() * 1000))
+    object_string = API_KEY + timestamp
 
-    # Parameters for V1 request
-    params = {
-        "api_key": api_key,
-        "req_time": req_time
-    }
-
-    # Create the sorted query string
-    sorted_query = '&'.join([f"{key}={params[key]}" for key in sorted(params)])
-
-    # Create the signature
     signature = hmac.new(
-        api_secret.encode("utf-8"),
-        sorted_query.encode("utf-8"),
+        API_SECRET.encode('utf-8'),
+        object_string.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
 
-    # Append signature to params
-    params["sign"] = signature
+    headers = {
+        "ApiKey": API_KEY,
+        "Request-Time": timestamp,
+        "Signature": signature,
+        "Content-Type": "application/json"
+    }
 
-    # GET request
-    response = requests.get(url, params=params)
-
+    response = requests.get(url, headers=headers)
+    print("Response:", response.status_code, response.text)
     if response.status_code != 200:
         print("Futures request failed:", response.status_code, response.text)
         return []
-
-    result = response.json()
-    if not result.get("success"):
-        print("API Error:", result.get("message", "Unknown error"))
-        return []
-
-    # Extract active symbols (with open volume)
     data = result.get("data", [])
-    return [item["symbol"].replace("_", "") for item in data if float(item.get("holdVol", 0)) > 0]
+    return [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
+         
+ else:
+    print("Invalid market_type. Use 'spot' or 'futures'.")
+    return []
 
 def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIOD + 1):
  if market_type == "spot":
