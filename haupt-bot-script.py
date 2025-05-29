@@ -129,50 +129,31 @@ def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIO
     print("Invalid market_type. Use 'spot' or 'futures'.")
     return []
         
-def get_12h_candles_from_4h(candles_4h, market_type="spot"):
- if market_type == "spot":
-    if len(candles_4h) < 3:
+def get_12h_candles_from_4h(candles_4h):
+    if len(candles_4h) < 6:
         return []
-    candles_12h = []
-    # Group each 3x 4H candles into one 12H candle
-    for i in range(0, len(candles_4h) - 2, 3):
-        c1 = candles_4h[i]
-        c2 = candles_4h[i + 1]
-        c3 = candles_4h[i + 2]
 
-        t_open = c1[0]                          # Timestamp of first 4H candle
-        o = c1[1]                               # Open of first candle
-        h = max(c1[2], c2[2], c3[2])            # Highest high
-        l = min(c1[3], c2[3], c3[3])            # Lowest low
-        c = c3[4]                               # Close of last 4H candle
-        v = c1[5] + c2[5] + c3[5]               # Combined volume
-        candles_12h.append((t_open, o, h, l, c, v))
-    return candles_12h
- elif market_type == "futures":
     candles_12h = []
-    for i in range(0, len(candles_4h) - 2, 3):
-        group = candles_4h[i:i + 3]
+
+    # Exclude the most recent 4H candle (still forming), use only closed ones
+    valid_candles = candles_4h[:-1]
+
+    # Build 12H candles from groups of 3x 4H candles
+    for i in range(0, len(valid_candles) - 2, 3):
+        group = valid_candles[i:i + 3]
         if len(group) < 3:
             continue
-        times = [g[0] for g in group]
-        opens = [float(g[1]) for g in group]
-        highs = [float(g[2]) for g in group]
-        lows = [float(g[3]) for g in group]
-        closes = [float(g[4]) for g in group]
-        volumes = [float(g[5]) for g in group]
-        candle_12h = (
-            times[0],             # timestamp of first 4H candle
-            opens[0],             # open of first
-            max(highs),           # high of group
-            min(lows),            # low of group
-            closes[-1],           # close of last
-            sum(volumes)          # sum of volume
-        )
-        candles_12h.append(candle_12h)
+
+        t_open = group[0][0]                     # timestamp of first 4H candle
+        o = float(group[0][1])                   # open of first
+        h = max(float(c[2]) for c in group)      # high
+        l = min(float(c[3]) for c in group)      # low
+        c = float(group[-1][4])                  # close of last
+        v = sum(float(c[5]) for c in group)      # volume sum
+
+        candles_12h.append((t_open, o, h, l, c, v))
+
     return candles_12h
- else:
-        print("Invalid market_type. Use 'spot' or 'futures'.")
-        return []
 
 def calculate_rsi(closes, period=14):
     if len(closes) < period + 1:
