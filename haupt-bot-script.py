@@ -308,10 +308,10 @@ def send_telegram_alert(message):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
+    #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
     sym_spots = [ "JASMYUSDT", "FARTCOINUSDT", "KASUSDT", "COOKIEUSDT", "RIZUSDT", "POPCATUSDT", "PIPPINUSDT" ]
     #sym_spots = get_open_symbols("spot")
-    #sym_futs = get_open_symbols("futures")
+    symbols = get_open_symbols("futures")
     print(f"{sym_spots}")
     #print(f"{sym_futs}")    
     #symbols = get_perpetual_symbols()
