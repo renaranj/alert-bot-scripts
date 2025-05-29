@@ -18,7 +18,7 @@ RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
         
-def get_perpetual_symbols():
+def get_all_perpetual_symbols():
     url = "https://contract.mexc.com/api/v1/contract/detail"
     res = requests.get(url).json()
     return [s["symbol"] for s in res["data"] if s["quoteCoin"] == "USDT"]
@@ -73,6 +73,9 @@ def get_open_symbols(market_type="spot"):
         print("Futures position fetch failed:", response.status_code)
         return []
     data = response.json().get("data", [])
+    print("Futures response JSON:", response.json())
+    for item in data:
+        print(item["symbol"], "holdVol:", item.get("holdVol"))
     return[item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
  else:
     print("Invalid market_type. Use 'spot' or 'futures'.")
@@ -301,6 +304,7 @@ def main():
     #sym_spots = [ "JASMYUSDT", "FARTCOINUSDT", "KASUSDT", "COOKIEUSDT", "RIZUSDT", "POPCATUSDT", "PIPPINUSDT" ]
     sym_spots = get_open_symbols("spot")
     sym_futs = get_open_symbols("futures")
+    #symbols = get_all_perpetual_symbols()
     #print(f"{sym_spots}")
     n = 10
     if sym_futs:
