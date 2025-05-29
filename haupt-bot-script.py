@@ -74,7 +74,7 @@ def get_open_symbols(market_type="spot"):
     if response.status_code != 200:
         print("Futures request failed:", response.status_code, response.text)
         return []
-    data = response.get("data", [])
+    data = response.json().get("data", [])
     return [item["symbol"] for item in data if float(item.get("holdVol", 0)) > 0]
          
  else:
