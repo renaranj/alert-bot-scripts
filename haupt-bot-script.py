@@ -61,7 +61,7 @@ def get_open_symbols(market_type="spot"):
         object_string.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
-
+    print (f"signature {signature}, object_string {object_string}")
     headers = {
         "ApiKey": API_KEY,
         "Request-Time": timestamp,
