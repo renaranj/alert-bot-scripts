@@ -295,7 +295,7 @@ def detect_candle_patterns(candles, pattern_name="4H"):
 
     return "\n".join(messages)
 
-def alarm_candle_patterns(symbol, market_type, priority=False):
+def alarm_candle_patterns(symbols, market_type, priority=False):
      now = datetime.now(timezone.utc)
      hour, minute = now.hour, now.minute
      for symbol in symbols:
@@ -341,7 +341,7 @@ def main():
     open_futures = get_open_symbols("futures")
     alarm_candle_patterns( open_futures, 'futures', True)
     watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    alarm_candle_patterns( open_futures, 'futures', False)
+    alarm_candle_patterns(watchlist_symbols, 'futures', False)
     
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
