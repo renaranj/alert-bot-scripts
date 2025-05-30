@@ -326,7 +326,7 @@ def main():
        stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
        if (stoch_rsiK < 20 or stoch_rsiK > 80): 
           candles_12h = get_12h_candles_from_4h(candles_4h)
-          candles_1d = get_candles(watchlist_symbol,market_type,interval="1D",limit=3)
+          candles_1d = get_candles(watchlist_symbol,'futures',interval="1D",limit=3)
        
           candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
           if hour in [0, 12]:
