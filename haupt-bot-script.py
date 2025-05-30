@@ -334,7 +334,7 @@ def main():
     process_symbols_for_patterns(sym_futs, 'futures')
     watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
-   
+    print(f"{watchlist_symbols}")
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
