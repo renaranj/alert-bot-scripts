@@ -26,6 +26,9 @@ def get_all_perpetual_symbols():
         
 def load_watchlist_from_csv(file_path):
     symbols = []
+    if not os.path.exists(file_path):
+        print(f"❌ File not found: {file_path}")
+        return []
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         next(reader)  # Skip header if it exists
@@ -327,14 +330,14 @@ def send_telegram_alert(message):
 def main():
 
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
-    symbols = get_all_perpetual_symbols()
+    symbols = []
     sym_spots = get_open_symbols("spot")
     sym_futs = get_open_symbols("futures")
     #process_symbols_for_patterns(sym_spots, 'spot')
     #process_symbols_for_patterns(sym_futs, 'futures')
     watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     print(f"{watchlist_symbols}")
-    process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
+    #process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
     
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
