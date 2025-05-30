@@ -294,6 +294,7 @@ def process_symbols_for_patterns(symbols, market_type="spot"):
        if hour == 0:
         candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
        if candelsticks_msg:
+        print(f"{candelsticks_msg}")
         send_telegram_alert(candelsticks_msg)
         
 def send_telegram_alert(message):
