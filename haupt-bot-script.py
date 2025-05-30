@@ -315,8 +315,8 @@ def alarm_candle_patterns(symbols, market_type, priority=False):
              candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
           if candelsticks_msg:
              candelsticks_msg = f"{'🚨' if priority else ''}{symbol} {candelsticks_msg}"
-             #send_telegram_alert(candelsticks_msg)
-             print(f"{candelsticks_msg}")
+             send_telegram_alert(candelsticks_msg)
+             #print(f"{candelsticks_msg}")
                   
 def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
