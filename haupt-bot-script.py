@@ -96,7 +96,7 @@ def get_open_symbols(market_type="spot"):
     print("Invalid market_type. Use 'spot' or 'futures'.")
     return []
 
-def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIOD + 1):
+def get_candles(symbol, market_type, interval, limit= EMA_LONG_PERIOD + 1):
  if market_type == "spot":
     if interval == "4H":
          interval = "4h"
@@ -109,9 +109,6 @@ def get_candles(symbol, market_type="spot", interval="4H", limit= EMA_LONG_PERIO
         print(f"Failed to fetch spot candles for {symbol}: {response.text}")
         return []
     data = response.json()
-    if not data or len(data[0]) < 6:
-        print(f"Unexpected spot candle structure for {symbol}")
-        return []
     candles = [
         (int(item[0]), float(item[1]), float(item[2]), float(item[3]), float(item[4]), float(item[5]))
         for item in data
@@ -341,7 +338,7 @@ def main():
     #process_symbols_for_patterns(sym_futs, 'futures')
     watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     print(f"{watchlist_symbols}")
-    #process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
+    process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
     
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
