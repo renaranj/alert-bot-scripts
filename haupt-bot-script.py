@@ -34,9 +34,11 @@ def load_watchlist_from_csv(file_path):
         reader = csv.reader(csvfile)
         for row in reader:
             for cell in row:
-                symbol = cell.strip()
-                if symbol:
-                    symbols.append(symbol)
+                if symbol.startswith("MEXC:"):
+                   symbol = symbol.replace("MEXC:", "")
+                if symbol.endswith(".P"):
+                   symbol = symbol.replace(".P", "").replace("USDT", "") + "_USDT"
+                symbols.append(symbol)
     return symbols
 
 def get_open_symbols(market_type="spot"):
