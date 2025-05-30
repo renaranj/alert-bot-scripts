@@ -319,7 +319,7 @@ def main():
     watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     
     for watchlist_symbol in watchlist_symbols:
-       candles_4h = get_candles(watchlist_symbol,market_type,interval="4H",limit=51)
+       candles_4h = get_candles(watchlist_symbol,'futures',interval="4H",limit=51)
        if len(candles_4h) < 51:
                continue
        closes_4h = [float(c[4]) for c in candles_4h]
@@ -334,7 +334,7 @@ def main():
           if hour == 0:
              candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
           if candelsticks_msg:
-             candelsticks_msg = f"{'🚨' if priority else ''}{symbol} {candelsticks_msg}"
+             candelsticks_msg = f"{'🚨' if priority else ''}{watchlist_symbol} {candelsticks_msg}"
              #send_telegram_alert(candelsticks_msg)
              print(f"{candelsticks_msg}")
     
