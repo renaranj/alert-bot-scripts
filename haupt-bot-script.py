@@ -32,10 +32,9 @@ def load_watchlist_from_csv(file_path):
         return []
     with open(file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
-        next(reader)  # Skip header if it exists
         for row in reader:
-            if row:
-                symbol = row[0].strip()
+            for cell in row:
+                symbol = cell.strip()
                 if symbol:
                     symbols.append(symbol)
     return symbols
