@@ -291,7 +291,7 @@ def detect_candle_patterns(candles, pattern_name="4H"):
 
     return "\n".join(messages)
 
-def process_symbols_for_patterns(symbols, market_type="spot"):
+def process_symbols_for_patterns(symbols, market_type):
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     for symbol in symbols:
@@ -300,15 +300,15 @@ def process_symbols_for_patterns(symbols, market_type="spot"):
        candles_1d = get_candles(symbol,market_type,interval="1D",limit=3)
        
        candelsticks_msg = ""
-       if hour in [0, 4, 8, 12, 16, 20]:
-        candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
+       candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
        if hour in [0, 12]:
-        candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
+          candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
        if hour == 0:
-        candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
+          candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
        if candelsticks_msg:
-        print(f"{candelsticks_msg}")
-        send_telegram_alert(candelsticks_msg)
+          candelsticks_msg = symbol + candelsticks_msg
+          print(f"{candelsticks_msg}")
+          send_telegram_alert(candelsticks_msg)
         
 def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -333,8 +333,9 @@ def main():
     #process_symbols_for_patterns(sym_spots, 'spot')
     #process_symbols_for_patterns(sym_futs, 'futures')
     watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
     print(f"{watchlist_symbols}")
+    process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
+    
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
