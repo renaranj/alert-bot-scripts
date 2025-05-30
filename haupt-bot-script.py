@@ -294,29 +294,6 @@ def detect_candle_patterns(candles, pattern_name="4H"):
         messages.append(f"🌀 Spinning Top on {pattern_name}")
 
     return "\n".join(messages)
-
-def process_symbols_for_patterns(symbols, market_type, priority= False):
-    now = datetime.now(timezone.utc)
-    hour, minute = now.hour, now.minute
-    for symbol in symbols:
-       candles_4h = get_candles(symbol,market_type,interval="4H",limit=51)
-       if len(candles_4h) < 51:
-               continue
-       closes_4h = [float(c[4]) for c in candles_4h]
-       stochRSI = calculate_stoch_rsi(closes_4h)
-       if stochRSI < 20 and stochRSI > 80: 
-          candles_12h = get_12h_candles_from_4h(candles_4h)
-          candles_1d = get_candles(symbol,market_type,interval="1D",limit=3)
-       
-          candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
-          if hour in [0, 12]:
-             candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
-          if hour == 0:
-             candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
-          if candelsticks_msg:
-             candelsticks_msg = f"{'🚨' if priority else ''}{symbol} {candelsticks_msg}"
-             #send_telegram_alert(candelsticks_msg)
-             print(f"{candelsticks_msg}")
         
 def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -333,15 +310,33 @@ def send_telegram_alert(message):
         print(f"Error sending Telegram alert: {e}")
 
 def main():
-
+    now = datetime.now(timezone.utc)
+    hour, minute = now.hour, now.minute
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
     symbols = []
-    sym_spots = get_open_symbols("spot")
-    sym_futs = get_open_symbols("futures")
-    process_symbols_for_patterns(sym_spots, 'spot', True)
-    process_symbols_for_patterns(sym_futs, 'futures', True)
+    open_spots = get_open_symbols("spot")
+    open_futures = get_open_symbols("futures")
     watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
+    
+    for watchlist_symbol in watchlist_symbols:
+       candles_4h = get_candles(watchlist_symbol,market_type,interval="4H",limit=51)
+       if len(candles_4h) < 51:
+               continue
+       closes_4h = [float(c[4]) for c in candles_4h]
+       stoch_rsi = calculate_stoch_rsi(closes_4h)
+       if (stoch_rsi < 20 or stoch_rsi > 80): 
+          candles_12h = get_12h_candles_from_4h(candles_4h)
+          candles_1d = get_candles(watchlist_symbol,market_type,interval="1D",limit=3)
+       
+          candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
+          if hour in [0, 12]:
+             candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
+          if hour == 0:
+             candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
+          if candelsticks_msg:
+             candelsticks_msg = f"{'🚨' if priority else ''}{symbol} {candelsticks_msg}"
+             #send_telegram_alert(candelsticks_msg)
+             print(f"{candelsticks_msg}")
     
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
