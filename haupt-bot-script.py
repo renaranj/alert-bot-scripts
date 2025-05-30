@@ -5,6 +5,7 @@ import hashlib
 from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
+import csv
 
 # === PLACEHOLDERS ===
 TELEGRAM_TOKEN = "7716430771:AAHqCZNoDACm3qlaue4G_hTJkyrxDRV9uxo"
@@ -22,6 +23,18 @@ def get_all_perpetual_symbols():
     url = "https://contract.mexc.com/api/v1/contract/detail"
     res = requests.get(url).json()
     return [s["symbol"] for s in res["data"] if s["quoteCoin"] == "USDT"]
+        
+def load_watchlist_from_csv(file_path):
+    symbols = []
+    with open(file_path, 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader)  # Skip header if it exists
+        for row in reader:
+            if row:
+                symbol = row[0].strip()
+                if symbol:
+                    symbols.append(symbol)
+    return symbols
 
 def get_open_symbols(market_type="spot"):
  if market_type == "spot":
@@ -319,6 +332,8 @@ def main():
     sym_futs = get_open_symbols("futures")
     process_symbols_for_patterns(sym_spots, 'spot')
     process_symbols_for_patterns(sym_futs, 'futures')
+    watchlist_symbols = load_watchlist_from_csv("watchlists/shorts.csv")
+    process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
    
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
