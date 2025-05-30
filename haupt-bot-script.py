@@ -34,8 +34,10 @@ def load_watchlist_from_csv(file_path):
         reader = csv.reader(csvfile)
         for row in reader:
             for cell in row:
-                if symbol.startswith("MEXC:"):
+                symbol = cell.strip()
+                if symbol.startswith("MEXC:") or symbol.startswith("BITGET:"):
                    symbol = symbol.replace("MEXC:", "")
+                   symbol = symbol.replace("BITGET:", "")
                 if symbol.endswith(".P"):
                    symbol = symbol.replace(".P", "").replace("USDT", "") + "_USDT"
                 symbols.append(symbol)
