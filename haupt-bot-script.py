@@ -332,7 +332,7 @@ def main():
     sym_futs = get_open_symbols("futures")
     process_symbols_for_patterns(sym_spots, 'spot')
     process_symbols_for_patterns(sym_futs, 'futures')
-    watchlist_symbols = load_watchlist_from_csv("watchlists/shorts.csv")
+    watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     process_symbols_for_patterns(watchlist_symbols, market_type="futures")  
    
     for symbol in symbols:
