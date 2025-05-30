@@ -295,7 +295,7 @@ def detect_candle_patterns(candles, pattern_name="4H"):
 
     return "\n".join(messages)
 
-def alarm_candle_patterns(symbol, market_type, priority=False)
+def alarm_candle_patterns(symbol, market_type, priority=False):
      now = datetime.now(timezone.utc)
      hour, minute = now.hour, now.minute
      for symbol in symbols:
