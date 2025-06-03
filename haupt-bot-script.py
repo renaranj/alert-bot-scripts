@@ -314,7 +314,10 @@ def alarm_candle_patterns(symbols, market_type, priority=False):
           if hour == 0:
              candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
           if candelsticks_msg:
-             candelsticks_msg = f"{'🚨' if priority else ''}{symbol} {candelsticks_msg}"
+             if market_type == 'futures' and "_" in symbol:
+                symbol = symbol.replace("_USDT", "USDT.P")
+             tv_url = f"https://www.tradingview.com/chart/?symbol=MEXC:{symbol}"
+             candelsticks_msg = f"{'🚨' if priority else ''}[{symbol}]({tv_url})\n{candelsticks_msg}"
              send_telegram_alert(candelsticks_msg)
              #print(f"{candelsticks_msg}")
                   
@@ -341,7 +344,7 @@ def main():
     open_futures = get_open_symbols("futures")
     alarm_candle_patterns( open_futures, 'futures', True)
     watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    alarm_candle_patterns(watchlist_symbols, 'futures', False)
+    #alarm_candle_patterns(watchlist_symbols, 'futures', False)
     
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
