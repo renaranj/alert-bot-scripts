@@ -233,6 +233,33 @@ def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smoo
     d = k.rolling(smooth_d).mean()
     return k.iloc[-1] * 100, d.iloc[-1] * 100
 
+def calculate_ichimoku(candles):
+    if len(candles) < 52:
+        return None, None, None, None  # Not enough data
+
+    highs = pd.Series([float(c[2]) for c in candles])
+    lows = pd.Series([float(c[3]) for c in candles])
+    
+    # Tenkan-sen (Conversion Line)
+    nine_high = highs.rolling(window=9).max()
+    nine_low = lows.rolling(window=9).min()
+    tenkan_sen = (nine_high + nine_low) / 2
+
+    # Kijun-sen (Base Line)
+    period26_high = highs.rolling(window=26).max()
+    period26_low = lows.rolling(window=26).min()
+    kijun_sen = (period26_high + period26_low) / 2
+
+    # Senkou Span A (Leading Span A)
+    senkou_span_a = ((tenkan_sen + kijun_sen) / 2).shift(26)
+
+    # Senkou Span B (Leading Span B)
+    period52_high = highs.rolling(window=52).max()
+    period52_low = lows.rolling(window=52).min()
+    senkou_span_b = ((period52_high + period52_low) / 2).shift(26)
+
+    return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
+        
 def detect_candle_patterns(candles, pattern_name="4H"):
     if len(candles) < 3:
         return ""
