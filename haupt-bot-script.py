@@ -324,7 +324,7 @@ def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
         "chat_id": TELEGRAM_CHAT_ID,
-        "text": message
+        "text": message,
         "parse_mode": "Markdown",
         "disable_web_page_preview": True
     }
