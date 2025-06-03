@@ -316,7 +316,7 @@ def alarm_candle_patterns(symbols, market_type, priority=False):
           if candelsticks_msg:
              if market_type == 'futures' and "_" in symbol:
                 symbol = symbol.replace("_USDT", "USDT.P")
-             candelsticks_msg = f"{'🚨' if priority else ''}[{symbol}](tradingview://chart/MEXC:{symbol})\n{candelsticks_msg}"
+             candelsticks_msg = f"{'🚨' if priority else ''}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n{candelsticks_msg}"
              send_telegram_alert(candelsticks_msg)
              #print(f"{candelsticks_msg}")
                   
