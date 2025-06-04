@@ -323,7 +323,7 @@ def alarm_touch_ema_200(symbols, market_type):
               symbol = symbol.replace("_USDT", "USDT.P")
            msg = f"🚨[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}) touched Ema200_12H"
            send_telegram_alert(msg)
-        candles_1d = get_candles(symbols,"futures",interval="1D",limit=201)
+        candles_1d = get_candles(symbol,"futures",interval="1D",limit=201)
         if len(candles_1d) < 200:
            continue 
         closes_1d = [float(c[4]) for c in candles_1d]        
