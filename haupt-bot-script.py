@@ -158,7 +158,7 @@ def get_12h_candles_from_4h(candles_4h):
 
     for candle in valid_candles:
         timestamp, o, h, l, c, v = candle
-
+        print(f"({timestamp},{o},{h},{l},{c},{v})")
         # Round down to the closest 4H anchor: 00:00, 04:00, ..., 20:00
         dt = datetime.utcfromtimestamp(timestamp)
         aligned_hour = (dt.hour // 4) * 4
@@ -446,14 +446,14 @@ def send_telegram_alert(message):
 def main():
 
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
-    symbols = []
-    open_spots = get_open_symbols("spot")
-    alarm_candle_patterns(open_spots, 'spot', True)
-    open_futures = get_open_symbols("futures")
-    alarm_candle_patterns( open_futures, 'futures', True)
-    watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    alarm_touch_ema_200(watchlist_symbols,'futures')
-    alarm_candle_patterns(watchlist_symbols, 'futures', False)
+    symbols = ["VTHO_USDT"]
+    #open_spots = get_open_symbols("spot")
+    #alarm_candle_patterns(open_spots, 'spot', True)
+    #open_futures = get_open_symbols("futures")
+    #alarm_candle_patterns( open_futures, 'futures', True)
+    #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
+    #alarm_touch_ema_200(watchlist_symbols,'futures')
+    #alarm_candle_patterns(watchlist_symbols, 'futures', False)
     
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
