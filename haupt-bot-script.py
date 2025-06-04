@@ -145,28 +145,56 @@ def get_candles(symbol, market_type, interval, limit= EMA_LONG_PERIOD + 1):
     return []
         
 def get_12h_candles_from_4h(candles_4h):
-    if len(candles_4h) < 4:
+    if len(candles_4h) < 3:
         return []
 
     candles_12h = []
 
-    # Exclude the most recent 4H candle (still forming), use only closed ones
+    # Exclude the most recent candle (still forming)
     valid_candles = candles_4h[:-1]
 
-    # Build 12H candles from groups of 3x 4H candles
-    for i in range(0, len(valid_candles) - 2, 3):
-        group = valid_candles[i:i + 3]
-        if len(group) < 3:
-            continue
+    # Create a helper: map from aligned 4H hour to the candle
+    aligned_4h_map = {}
 
-        t_open = group[0][0]                     # timestamp of first 4H candle
-        o = float(group[0][1])                   # open of first
-        h = max(float(c[2]) for c in group)      # high
-        l = min(float(c[3]) for c in group)      # low
-        c = float(group[-1][4])                  # close of last
-        v = sum(float(c[5]) for c in group)      # volume sum
+    for candle in valid_candles:
+        timestamp, o, h, l, c, v = candle
 
-        candles_12h.append((t_open, o, h, l, c, v))
+        # Round down to the closest 4H anchor: 00:00, 04:00, ..., 20:00
+        dt = datetime.datetime.utcfromtimestamp(timestamp)
+        aligned_hour = (dt.hour // 4) * 4
+        aligned_time = datetime.datetime(dt.year, dt.month, dt.day, aligned_hour)
+        aligned_ts = int(aligned_time.timestamp())
+
+        aligned_4h_map[aligned_ts] = candle
+
+    # Sort aligned timestamps
+    sorted_timestamps = sorted(aligned_4h_map.keys())
+
+    # Loop through aligned 4H timestamps in steps of 3 to build 12H candles
+    i = 0
+    while i <= len(sorted_timestamps) - 3:
+        t0 = sorted_timestamps[i]
+        t1 = sorted_timestamps[i + 1]
+        t2 = sorted_timestamps[i + 2]
+
+        # Check that these 3 timestamps are exactly 4H apart
+        if t1 == t0 + 14400 and t2 == t0 + 28800:  # 14400 seconds = 4 hours
+            group = [
+                aligned_4h_map[t0],
+                aligned_4h_map[t1],
+                aligned_4h_map[t2],
+            ]
+
+            o = float(group[0][1])
+            h = max(float(c[2]) for c in group)
+            l = min(float(c[3]) for c in group)
+            c_ = float(group[-1][4])
+            v = sum(float(c[5]) for c in group)
+
+            candles_12h.append((t0, o, h, l, c_, v))
+            i += 3  # Move forward by 3 (12H)
+        else:
+            i += 1  # Skip forward to try to find the next aligned set
 
     return candles_12h
 
