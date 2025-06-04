@@ -308,12 +308,12 @@ def detect_candle_patterns(candles, pattern_name="4H"):
 def alarm_touch_ema_200(symbols, market_type):
     for symbol in symbols:
         candles_4h = get_candles(symbol,market_type,interval="4H",limit=601)
-         if len(candles_4h) < 601:
-            continue     
+        if len(candles_4h) < 601:
+           continue     
         closes_4h = [float(c[4]) for c in candles_4h]
         candles_12h = get_12h_candles_from_4h(candles_4h)
         if len(candles_12h) < 200:
-            continue 
+           continue 
         closes_12h = [float(c[4]) for c in candles_12h]        
         t, o, h, l, c, v = candles_4h[-2]
         h, l = float(h), float(l)
@@ -325,7 +325,7 @@ def alarm_touch_ema_200(symbols, market_type):
            send_telegram_alert(msg)
         candles_1d = get_candles(symbols,"futures",interval="1D",limit=201)
         if len(candles_1d) < 200:
-            continue 
+           continue 
         closes_1d = [float(c[4]) for c in candles_1d]        
         t, o, h, l, c, v = candles_4h[-2]
         h, l = float(h), float(l)
