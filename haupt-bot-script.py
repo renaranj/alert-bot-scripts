@@ -170,6 +170,12 @@ def get_12h_candles_from_4h(candles_4h):
 
     return candles_12h
 
+def calculate_ema(closes, period=200):
+    closes = pd.Series(closes)  # Ensure it's a Series
+    if len(closes) < period:
+        return None
+    return pd.Series(closes).ewm(span=period, adjust=False).mean().iloc[-1]
+
 def calculate_rsi(closes, period=14):
     if len(closes) < period + 1:
         return None
@@ -200,29 +206,6 @@ def calculate_macd(closes, fast_period=12, slow_period=26, signal_period=9):
     macd_histogram = macd_line - signal_line
 
     return macd_line.iloc[-1], signal_line.iloc[-1], macd_histogram.iloc[-1]
-
-def calculate_ema(closes, period=200):
-    closes = pd.Series(closes)  # Ensure it's a Series
-    if len(closes) < period:
-        return None
-    return pd.Series(closes).ewm(span=period, adjust=False).mean().iloc[-1]
-
-def touch_ema_200(candles, closes_12h, closes_1d):
-        if len(candles) < 3:
-            return False
-
-        t, o, h, l, c, v = candles[-1]
-        h, l = float(h), float(l)
-
-        if len(closes_12h) > 200:
-            ema_200_12h = calculate_ema(closes_12h)
-            if ema_200_12h > l and ema_200_12h < h:
-                return True
-         
-        if len(closes_1d) > 200:
-            ema_200_1d = calculate_ema(closes_1d)
-            if ema_200_1d > l and ema_200_1d < h:
-                return True
 
 def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smooth_d=3):
     if len(closes) < rsi_period + stoch_period:
@@ -259,7 +242,7 @@ def calculate_ichimoku(candles):
     senkou_span_b = ((period52_high + period52_low) / 2).shift(26)
 
     return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
-        
+
 def detect_candle_patterns(candles, pattern_name="4H"):
     if len(candles) < 3:
         return ""
@@ -322,6 +305,37 @@ def detect_candle_patterns(candles, pattern_name="4H"):
 
     return "\n".join(messages)
 
+def alarm_touch_ema_200(symbols, market_type):
+    for symbol in symbols:
+        candles_4h = get_candles(symbol,market_type,interval="4H",limit=601)
+         if len(candles_4h) < 601:
+            continue     
+        closes_4h = [float(c[4]) for c in candles_4h]
+        candles_12h = get_12h_candles_from_4h(candles_4h)
+        if len(candles_12h) < 200:
+            continue 
+        closes_12h = [float(c[4]) for c in candles_12h]        
+        t, o, h, l, c, v = candles_4h[-2]
+        h, l = float(h), float(l)
+        ema_200_12h = calculate_ema(closes_12h)
+        if ema_200_12h > l and ema_200_12h < h:
+           if market_type == 'futures' and "_" in symbol:
+              symbol = symbol.replace("_USDT", "USDT.P")
+           msg = f"🚨[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}) touched Ema200_12H"
+           send_telegram_alert(msg)
+        candles_1d = get_candles(symbols,"futures",interval="1D",limit=201)
+        if len(candles_1d) < 200:
+            continue 
+        closes_1d = [float(c[4]) for c in candles_1d]        
+        t, o, h, l, c, v = candles_4h[-2]
+        h, l = float(h), float(l)
+        ema_200_1d = calculate_ema(closes_1d)
+        if ema_200_1d > l and ema_200_1d < h:
+           if market_type == 'futures' and "_" in symbol:
+              symbol = symbol.replace("_USDT", "USDT.P")
+           msg = f"🚨[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}) touched Ema200_1D"
+           send_telegram_alert(msg)
+
 def alarm_candle_patterns(symbols, market_type, priority=False):
      now = datetime.now(timezone.utc)
      hour, minute = now.hour, now.minute
@@ -345,8 +359,46 @@ def alarm_candle_patterns(symbols, market_type, priority=False):
                 symbol = symbol.replace("_USDT", "USDT.P")
              candelsticks_msg = f"{'🚨' if priority else ''}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n{candelsticks_msg}"
              send_telegram_alert(candelsticks_msg)
-             #print(f"{candelsticks_msg}")
-                  
+ 
+def alarm_ichimoku_crosses(candles, tf_label=""):
+    if len(candles) < 80:
+        return ""
+
+    tenkan, kijun, senkou_a, senkou_b = calculate_ichimoku(candles)
+    closes = [float(c[4]) for c in candles]
+    current_close = closes[-1]
+
+    messages = []
+
+    # Ichimoku Cloud boundaries
+    latest_senkou_a = senkou_a.iloc[-27] if len(senkou_a) >= 27 else None
+    latest_senkou_b = senkou_b.iloc[-27] if len(senkou_b) >= 27 else None
+    if latest_senkou_a is None or latest_senkou_b is None:
+        return ""
+
+    cloud_top = max(latest_senkou_a, latest_senkou_b)
+    cloud_bottom = min(latest_senkou_a, latest_senkou_b)
+
+    # Tenkan/Kijun Cross
+    if tenkan.iloc[-2] < kijun.iloc[-2] and tenkan.iloc[-1] > kijun.iloc[-1]:
+        if current_close > cloud_top:
+            messages.append(f"🟢 Bullish Tenkan/Kijun cross above cloud on {tf_label}")
+        else:
+            messages.append(f"🟡 Bullish Tenkan/Kijun cross below/inside cloud on {tf_label}")
+    elif tenkan.iloc[-2] > kijun.iloc[-2] and tenkan.iloc[-1] < kijun.iloc[-1]:
+        if current_close < cloud_bottom:
+            messages.append(f"🔴 Bearish Tenkan/Kijun cross below cloud on {tf_label}")
+        else:
+            messages.append(f"🟠 Bearish Tenkan/Kijun cross above/inside cloud on {tf_label}")
+
+    # Senkou Span A/B Cross (Cloud twist)
+    if senkou_a.iloc[-2] < senkou_b.iloc[-2] and senkou_a.iloc[-1] > senkou_b.iloc[-1]:
+        messages.append(f"🟢 Bullish Cloud Twist (Span A > B) on {tf_label}")
+    elif senkou_a.iloc[-2] > senkou_b.iloc[-2] and senkou_a.iloc[-1] < senkou_b.iloc[-1]:
+        messages.append(f"🔴 Bearish Cloud Twist (Span A < B) on {tf_label}")
+
+    return "\n".join(messages)
+                       
 def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
@@ -372,7 +424,8 @@ def main():
     open_futures = get_open_symbols("futures")
     alarm_candle_patterns( open_futures, 'futures', True)
     watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    #alarm_candle_patterns(watchlist_symbols, 'futures', False)
+    alarm_touch_ema_200(watchlist_symbols,'futures')
+    alarm_candle_patterns(watchlist_symbols, 'futures', False)
     
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
@@ -418,11 +471,9 @@ def main():
             macd_1d, signal_1d, hist_1d = calculate_macd(closes_1d)
             macd_1d_condition = macd_1d > 0 and signal_1d > 0 and hist_1d > 0
             #print(f"{symbol} MACD: {macd_1d:.3f}, Signal: {signal_1d:.3f}, Histogram: {hist_1d:.3f}")
-
-        is_touch_ema_200 = touch_ema_200(candles_4h,closes_12h,closes_1d)
                 
         if change_pct_4h > PRICE_CHANGE_THRESHOLD and rsi_4h and rsi_4h > RSI_THRESHOLD:
-            message = f"🚨 {sym_fut}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\nema200:{is_touch_ema_200} W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
+            message = f"🚨 {sym_fut}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\n W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
             #send_telegram_alert(message)
             print(f"{message}")
 
