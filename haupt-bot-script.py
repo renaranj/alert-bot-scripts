@@ -447,12 +447,12 @@ def main():
 
     #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
     symbols = ["VTHO_USDT"]
-    #open_spots = get_open_symbols("spot")
-    #alarm_candle_patterns(open_spots, 'spot', True)
-    #open_futures = get_open_symbols("futures")
-    #alarm_candle_patterns( open_futures, 'futures', True)
+    open_spots = get_open_symbols("spot")
+    alarm_candle_patterns(open_spots, 'spot', True)
+    open_futures = get_open_symbols("futures")
+    alarm_candle_patterns( open_futures, 'futures', True)
     #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    #alarm_touch_ema_200(watchlist_symbols,'futures')
+    alarm_touch_ema_200(symbols,'futures')
     #alarm_candle_patterns(watchlist_symbols, 'futures', False)
     
     for symbol in symbols:
