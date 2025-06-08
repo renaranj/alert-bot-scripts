@@ -271,9 +271,29 @@ def calculate_ichimoku(candles):
 
     return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
 
-def detect_candle_patterns(candles, pattern_name="4H"):
-    if len(candles) < 3:
-        return ""
+def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
+
+    if len(candles_4h) < 601:
+       return   
+    if len(candles_12h) < 200:
+       return 
+    t, o, h, l, c, v = candles_4h[-2]
+    h, l = float(h), float(l)
+    ema_200_12h = calculate_ema(closes_12h)
+    if ema_200_12h > l and ema_200_12h < h:
+    send_telegram_alert(symbol, 'touched Ema200_12H')
+    if len(candles_1d) < 200:
+       return 
+    closes_1d = [float(c[4]) for c in candles_1d]        
+    t, o, h, l, c, v = candles_4h[-2]
+    h, l = float(h), float(l)
+    ema_200_1d = calculate_ema(closes_1d)
+    if ema_200_1d > l and ema_200_1d < h:
+    send_telegram_alert(symbol, 'touched Ema200_1d', priority)
+
+def alarm_candle_patterns(symbol, candles, pattern_name, priority):
+    if len(candles) < 51:
+        return
     messages = []
 
     # We'll use the last two candles to detect engulfing patterns
@@ -330,65 +350,10 @@ def detect_candle_patterns(candles, pattern_name="4H"):
     #elif min(c, o) >  d1_3_body and max(c, o) < d3_4_body:
     elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
-
-    return "\n".join(messages)
-
-def alarm_touch_ema_200(symbols, market_type):
-    for symbol in symbols:
-        candles_4h = get_candles(symbol,market_type,interval="4H",limit=601)
-        if len(candles_4h) < 601:
-           continue     
-        closes_4h = [float(c[4]) for c in candles_4h]
-        candles_12h = get_12h_candles_from_4h(candles_4h)
-        if len(candles_12h) < 200:
-           continue 
-        closes_12h = [float(c[4]) for c in candles_12h]        
-        t, o, h, l, c, v = candles_4h[-2]
-        h, l = float(h), float(l)
-        ema_200_12h = calculate_ema(closes_12h)
-        if ema_200_12h > l and ema_200_12h < h:
-           if market_type == 'futures' and "_" in symbol:
-              symbol = symbol.replace("_USDT", "USDT.P")
-           msg = f"🚨[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}) touched Ema200_12H"
-           send_telegram_alert(msg)
-        candles_1d = get_candles(symbol,"futures",interval="1D",limit=201)
-        if len(candles_1d) < 200:
-           continue 
-        closes_1d = [float(c[4]) for c in candles_1d]        
-        t, o, h, l, c, v = candles_4h[-2]
-        h, l = float(h), float(l)
-        ema_200_1d = calculate_ema(closes_1d)
-        if ema_200_1d > l and ema_200_1d < h:
-           if market_type == 'futures' and "_" in symbol:
-              symbol = symbol.replace("_USDT", "USDT.P")
-           msg = f"🚨[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}) touched Ema200_1D"
-           send_telegram_alert(msg)
-
-def alarm_candle_patterns(symbols, market_type, priority=False):
-     now = datetime.now(timezone.utc)
-     hour, minute = now.hour, now.minute
-     for symbol in symbols:
-       candles_4h = get_candles(symbol,market_type,interval="4H",limit=51)
-       if len(candles_4h) < 51:
-               continue
-       closes_4h = [float(c[4]) for c in candles_4h]
-       stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
-       if (stoch_rsiK < 20 or stoch_rsiK > 80): 
-          candles_12h = get_12h_candles_from_4h(candles_4h)
-          candles_1d = get_candles(symbol,market_type,interval="1D",limit=3)
-       
-          candelsticks_msg = detect_candle_patterns(candles_4h, "4H")
-          if hour in [0, 12]:
-             candelsticks_msg += detect_candle_patterns(candles_12h, "12H")
-          if hour == 0:
-             candelsticks_msg += detect_candle_patterns(candles_1d, "1D")
-          if candelsticks_msg:
-             if market_type == 'futures' and "_" in symbol:
-                symbol = symbol.replace("_USDT", "USDT.P")
-             candelsticks_msg = f"{'🚨' if priority else ''}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n{candelsticks_msg}"
-             send_telegram_alert(candelsticks_msg)
+    
+    send_telegram_alert(symbol, messages, priority)
  
-def alarm_ichimoku_crosses(candles, tf_label=""):
+def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority):
     if len(candles) < 80:
         return ""
 
@@ -425,9 +390,14 @@ def alarm_ichimoku_crosses(candles, tf_label=""):
     elif senkou_a.iloc[-2] > senkou_b.iloc[-2] and senkou_a.iloc[-1] < senkou_b.iloc[-1]:
         messages.append(f"🔴 Bearish Cloud Twist (Span A < B) on {tf_label}")
 
-    return "\n".join(messages)
+    send_telegram_alert(symbol, messages, priority)
                        
-def send_telegram_alert(message):
+def send_telegram_alert(symbol, message, priority):
+    if "_" in symbol:
+       symbol = symbol.replace("_USDT", "USDT.P")
+    "[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n".join(message)
+    if priority:
+       "🚨".join(messages)
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -444,17 +414,54 @@ def send_telegram_alert(message):
         print(f"Error sending Telegram alert: {e}")
 
 def main():
+    now = datetime.now(timezone.utc)
+    hour, minute = now.hour, now.minute
 
-    #symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
-    symbols = ["VTHO_USDT"]
+    allf_symbols = get_all_perpetual_symbols()
+    for allf_symbol in allf_symbols:
+        candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+        candles_12h = get_12h_candles_from_4h(candles_4h)
+        candles_1d = get_candles(allf_symbol,"futures",interval="1D")       
+        alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
+        alarm_ichimoku_crosses(allf_symbol, candles_1d, tf_label="1D", False)
+            
     open_spots = get_open_symbols("spot")
-    alarm_candle_patterns(open_spots, 'spot', True)
+    for open_spot in open_spots:
+        candles_4h = get_candles(allf_symbol, "spot",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+        candles_12h = get_12h_candles_from_4h(candles_4h)
+        candles_1d = get_candles(allf_symbol,"spot",interval="1D")     
+        closes_4h = [float(c[4]) for c in candles]
+        if len(closes_4h) < 51:
+           continue
+        stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
+        if (stoch_rsiK < 20 or stoch_rsiK > 80): 
+           alarm_candle_patterns(open_spot, candles_4h, "4H", True)
+           if hour in [0, 12]:
+           alarm_candle_patterns(open_spot, candles_12h, "12H", True)
+           if hour == 0:
+           alarm_candle_patterns(open_spot, candles_1d, "1D", True)
+                
     open_futures = get_open_symbols("futures")
-    alarm_candle_patterns( open_futures, 'futures', True)
+    for open_future in open_futures:
+        candles_4h = get_candles(open_future, "futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+        candles_12h = get_12h_candles_from_4h(candles_4h)
+        candles_1d = get_candles(open_future,"futures",interval="1D")     
+        closes_4h = [float(c[4]) for c in candles]
+        if len(closes_4h) < 51:
+           continue
+        stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
+        if (stoch_rsiK < 20 or stoch_rsiK > 80): 
+           alarm_candle_patterns(open_future, candles_4h, "4H", True)
+           if hour in [0, 12]:
+           alarm_candle_patterns(open_future, candles_12h, "12H", True)
+           if hour == 0:
+           alarm_candle_patterns(open_future, candles_1d, "1D", True)
+
+
+        
     #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    alarm_touch_ema_200(symbols,'futures')
     #alarm_candle_patterns(watchlist_symbols, 'futures', False)
-    
+    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
