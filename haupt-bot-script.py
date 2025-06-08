@@ -437,9 +437,9 @@ def main():
         if (stoch_rsiK < 20 or stoch_rsiK > 80): 
            alarm_candle_patterns(open_spot, candles_4h, "4H", True)
            if hour in [0, 12]:
-           alarm_candle_patterns(open_spot, candles_12h, "12H", True)
+              alarm_candle_patterns(open_spot, candles_12h, "12H", True)
            if hour == 0:
-           alarm_candle_patterns(open_spot, candles_1d, "1D", True)
+              alarm_candle_patterns(open_spot, candles_1d, "1D", True)
                 
     open_futures = get_open_symbols("futures")
     for open_future in open_futures:
@@ -453,9 +453,9 @@ def main():
         if (stoch_rsiK < 20 or stoch_rsiK > 80): 
            alarm_candle_patterns(open_future, candles_4h, "4H", True)
            if hour in [0, 12]:
-           alarm_candle_patterns(open_future, candles_12h, "12H", True)
+              alarm_candle_patterns(open_future, candles_12h, "12H", True)
            if hour == 0:
-           alarm_candle_patterns(open_future, candles_1d, "1D", True)
+              alarm_candle_patterns(open_future, candles_1d, "1D", True)
 
 
         
