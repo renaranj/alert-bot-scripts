@@ -281,7 +281,7 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
     h, l = float(h), float(l)
     ema_200_12h = calculate_ema(closes_12h)
     if ema_200_12h > l and ema_200_12h < h:
-    send_telegram_alert(symbol, 'touched Ema200_12H')
+    send_telegram_alert(symbol, 'touched Ema200_12H', priority)
     if len(candles_1d) < 200:
        return 
     closes_1d = [float(c[4]) for c in candles_1d]        
