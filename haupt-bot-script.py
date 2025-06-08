@@ -158,7 +158,7 @@ def get_12h_candles_from_4h(candles_4h):
 
     for candle in valid_candles:
         timestamp, o, h, l, c, v = candle
-        print(f"({timestamp},{o},{h},{l},{c},{v})")
+        #print(f"({timestamp},{o},{h},{l},{c},{v})")
         # Round down to the closest 4H anchor: 00:00, 04:00, ..., 20:00
         dt = datetime.utcfromtimestamp(timestamp)
         aligned_hour = (dt.hour // 4) * 4
