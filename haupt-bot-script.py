@@ -423,7 +423,7 @@ def main():
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(allf_symbol,"futures",interval="1D")       
         alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
-        alarm_ichimoku_crosses(allf_symbol, candles_1d, tf_label="1D", False)
+        alarm_ichimoku_crosses(allf_symbol, candles_1d, "1D", False)
             
     open_spots = get_open_symbols("spot")
     for open_spot in open_spots:
