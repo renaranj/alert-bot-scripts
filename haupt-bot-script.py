@@ -395,9 +395,9 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
 def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
        symbol = symbol.replace("_USDT", "USDT.P")
-    "[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n".join(message)
+    message = "[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n" + message
     if priority:
-       "🚨".join(messages)
+       message = "🚨" + message
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
         "chat_id": TELEGRAM_CHAT_ID,
