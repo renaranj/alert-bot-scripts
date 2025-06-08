@@ -353,7 +353,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
     
     send_telegram_alert(symbol, messages, priority)
  
-def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority):
+def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
     if len(candles) < 80:
         return ""
 
