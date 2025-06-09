@@ -177,7 +177,7 @@ def get_12h_candles_from_4h(candles_4h):
         c = float(group[-1][4])
         v = sum(float(c[5]) for c in group)
         candles_12h.append((group[0][0], o, h, l, c, v))
-        print(f"({int(c0[0])},{o},{h},{l},{c},{v})")
+        print(f"({group[0][0]},{o},{h},{l},{c},{v})")
 
     return candles_12h
 
