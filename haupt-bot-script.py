@@ -292,7 +292,7 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
        send_telegram_alert(symbol, 'touched Ema200_1d', priority)
 
 def alarm_candle_patterns(symbol, candles, pattern_name, priority):
-    if len(candles) < 51:
+    if len(candles) < 3:
         return
     messages = []
 
@@ -350,9 +350,10 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
     #elif min(c, o) >  d1_3_body and max(c, o) < d3_4_body:
     elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
-            
+    "\n".join(messages)        
     if messages:
-       send_telegram_alert(symbol, messages, priority)
+       print(f"[{symbol}]{messages}")
+       #send_telegram_alert(symbol, messages, priority)
  
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
     if len(candles) < 80:
@@ -390,7 +391,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
         messages.append(f"🟢 Bullish Cloud Twist (Span A > B) on {tf_label}")
     elif senkou_a.iloc[-2] > senkou_b.iloc[-2] and senkou_a.iloc[-1] < senkou_b.iloc[-1]:
         messages.append(f"🔴 Bearish Cloud Twist (Span A < B) on {tf_label}")
-            
+    "\n".join(messages)        
     if messages:
        print(f"[{symbol}]{messages}")
        #send_telegram_alert(symbol, messages, priority)
@@ -419,14 +420,7 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
 
-    allf_symbols = get_all_perpetual_symbols()
-    for allf_symbol in allf_symbols:
-        candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
-        candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(allf_symbol,"futures",interval="1D")       
-        alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
-        alarm_ichimoku_crosses(allf_symbol, candles_1d, "1D", False)
-            
+    
     open_spots = get_open_symbols("spot")
     for open_spot in open_spots:
         candles_4h = get_candles(allf_symbol, "spot",interval="4H",limit=(EMA_LONG_PERIOD * 3))
@@ -448,7 +442,7 @@ def main():
         candles_4h = get_candles(open_future, "futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(open_future,"futures",interval="1D")     
-        closes_4h = [float(c[4]) for c in candles]
+        closes_4h = [float(c[4]) for c in candles_4h]
         if len(closes_4h) < 51:
            continue
         stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
@@ -458,11 +452,18 @@ def main():
               alarm_candle_patterns(open_future, candles_12h, "12H", True)
            if hour == 0:
               alarm_candle_patterns(open_future, candles_1d, "1D", True)
-
-
         
     #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     #alarm_candle_patterns(watchlist_symbols, 'futures', False)
+        
+    allf_symbols = get_all_perpetual_symbols()
+    for allf_symbol in allf_symbols:
+        candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+        candles_12h = get_12h_candles_from_4h(candles_4h)
+        candles_1d = get_candles(allf_symbol,"futures",interval="1D")       
+        alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
+        alarm_ichimoku_crosses(allf_symbol, candles_1d, "1D", False)
+            
     symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
