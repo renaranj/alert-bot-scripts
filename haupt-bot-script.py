@@ -158,7 +158,7 @@ def get_12h_candles_from_4h(candles_4h):
 
     for candle in valid_candles:
         timestamp, o, h, l, c, v = candle
-        #print(f"({timestamp},{o},{h},{l},{c},{v})")
+        print(f"({timestamp},{o},{h},{l},{c},{v})")
         # Round down to the closest 4H anchor: 00:00, 04:00, ..., 20:00
         dt = datetime.utcfromtimestamp(timestamp)
         aligned_hour = (dt.hour // 4) * 4
@@ -420,8 +420,8 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
 
-    
-    open_spots = get_open_symbols("spot")
+    #open_spots = get_open_symbols("spot")
+    open_spots = []    
     for open_spot in open_spots:
         candles_4h = get_candles(open_spot, "spot",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -437,7 +437,8 @@ def main():
            if hour == 0:
               alarm_candle_patterns(open_spot, candles_1d, "1D", True)
                 
-    open_futures = get_open_symbols("futures")
+    #open_futures = get_open_symbols("futures")
+    open_futures = []
     for open_future in open_futures:
         candles_4h = get_candles(open_future, "futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -456,7 +457,8 @@ def main():
     #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     #alarm_candle_patterns(watchlist_symbols, 'futures', False)
         
-    allf_symbols = get_all_perpetual_symbols()
+    #allf_symbols = get_all_perpetual_symbols()
+    allf_symbols = [ ]    
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
