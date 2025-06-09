@@ -148,43 +148,36 @@ def get_12h_candles_from_4h(candles_4h):
     if len(candles_4h) < 4:
         return []
 
-    # Exclude the most recent 4H candle (still forming)
-    valid_candles = candles_4h[:-1]
+    # Step 1: Remove most recent (possibly still forming) candle
+    closed_candles = candles_4h[:-1]
 
+    if len(closed_candles) < 3:
+        return []
+
+    # Step 2: Check the second candle's hour to determine how many to remove
+    timestamp = closed_candles[1][0]
+    if timestamp > 9999999999:
+        timestamp = int(timestamp / 1000)
+    hour = datetime.utcfromtimestamp(timestamp).hour
+
+    # Step 3: Align to 12H blocks (start at 00:00 or 12:00)
+    remove_count = hour % 12 // 4  # gives 0, 1, or 2
+    aligned_candles = closed_candles[remove_count:]
+
+    # Step 4: Group in batches of 3
     candles_12h = []
+    for i in range(0, len(aligned_candles) - 2, 3):
+        group = aligned_candles[i:i + 3]
+        if len(group) != 3:
+            continue
 
-    # Convert timestamps to datetime and back to (ts, candle) pairs
-    aligned_candles = []
-    for candle in valid_candles:
-        timestamp = int(candle[0])
-        if timestamp > 9999999999:
-            timestamp = int(timestamp / 1000)
-        dt = datetime.utcfromtimestamp(timestamp)
-        aligned_candles.append((dt, candle))
-
-    # Keep only full 12H blocks starting at 00:00 or 12:00
-    i = 0
-    while i <= len(aligned_candles) - 3:
-        dt0, c0 = aligned_candles[i]
-        dt1, c1 = aligned_candles[i + 1]
-        dt2, c2 = aligned_candles[i + 2]
-
-        # Check that this group starts at 00:00 or 12:00
-        if dt0.hour in [0, 12]:
-            # Check that the three are 4H apart and consecutive
-            if (dt1 - dt0).total_seconds() == 14400 and (dt2 - dt1).total_seconds() == 14400:
-                o = float(c0[1])
-                h = max(float(c[2]) for c in [c0, c1, c2])
-                l = min(float(c[3]) for c in [c0, c1, c2])
-                c = float(c2[4])
-                v = sum(float(c[5]) for c in [c0, c1, c2])
-                candles_12h.append((int(c0[0]), o, h, l, c, v))
-                print(f"({int(c0[0])},{o},{h},{l},{c},{v}))
-                i += 3  # move to next block
-            else:
-                i += 1  # timestamps not consecutive, skip
-        else:
-            i += 1  # not a valid 12H block start, skip
+        o = float(group[0][1])
+        h = max(float(c[2]) for c in group)
+        l = min(float(c[3]) for c in group)
+        c = float(group[-1][4])
+        v = sum(float(c[5]) for c in group)
+        candles_12h.append((group[0][0], o, h, l, c, v))
+        print(f"({int(c0[0])},{o},{h},{l},{c},{v})")
 
     return candles_12h
 
