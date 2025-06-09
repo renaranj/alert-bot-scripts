@@ -392,7 +392,8 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
         messages.append(f"🔴 Bearish Cloud Twist (Span A < B) on {tf_label}")
             
     if messages:
-       send_telegram_alert(symbol, messages, priority)
+       print(f"[{symbol}]{messages}")
+       #send_telegram_alert(symbol, messages, priority)
                        
 def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
@@ -431,7 +432,7 @@ def main():
         candles_4h = get_candles(allf_symbol, "spot",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(allf_symbol,"spot",interval="1D")     
-        closes_4h = [float(c[4]) for c in candles]
+        closes_4h = [float(c[4]) for c in candles_4h]
         if len(closes_4h) < 51:
            continue
         stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
