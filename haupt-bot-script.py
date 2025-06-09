@@ -388,7 +388,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
         messages.append(f"🔴 Bearish Cloud Twist (Span A < B) on {tf_label}")
     "\n".join(messages)        
     if messages:
-       #print(f"[{symbol}]{messages}")
+       print(f"[{symbol}]{messages}")
        send_telegram_alert(symbol, messages, priority)
                        
 def send_telegram_alert(symbol, message, priority):
