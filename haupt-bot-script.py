@@ -148,36 +148,48 @@ def get_12h_candles_from_4h(candles_4h):
     if len(candles_4h) < 4:
         return []
 
-    # Step 1: Remove most recent (possibly still forming) candle
+    # Remove most recent (potentially forming) candle
     closed_candles = candles_4h[:-1]
-
     if len(closed_candles) < 3:
         return []
 
-    # Step 2: Check the second candle's hour to determine how many to remove
-    timestamp = closed_candles[1][0]
+    # Determine how many candles to remove based on the second candle's hour
+    timestamp = int(closed_candles[1][0])
     if timestamp > 9999999999:
-        timestamp = int(timestamp / 1000)
+        timestamp = timestamp // 1000
     hour = datetime.utcfromtimestamp(timestamp).hour
 
-    # Step 3: Align to 12H blocks (start at 00:00 or 12:00)
-    remove_count = hour % 12 // 4  # gives 0, 1, or 2
+    # Custom logic based on your rules
+    remove_map = {
+        0: 1,
+        4: 2,
+        8: 0,
+        12: 1,
+        16: 2,
+        20: 0
+    }
+
+    remove_count = remove_map.get(hour, None)
+    if remove_count is None or len(closed_candles) <= remove_count:
+        return []
+
     aligned_candles = closed_candles[remove_count:]
 
-    # Step 4: Group in batches of 3
+    # Build 12H candles from 3x 4H groups
     candles_12h = []
     for i in range(0, len(aligned_candles) - 2, 3):
         group = aligned_candles[i:i + 3]
         if len(group) != 3:
             continue
 
+        t = group[0][0]
         o = float(group[0][1])
         h = max(float(c[2]) for c in group)
         l = min(float(c[3]) for c in group)
-        c = float(group[-1][4])
+        c = float(group[2][4])
         v = sum(float(c[5]) for c in group)
-        candles_12h.append((group[0][0], o, h, l, c, v))
-        print(f"({group[0][0]},{o},{h},{l},{c},{v})")
+        print(f"({t},{o},{h},{l},{c},{v})")
+        candles_12h.append((t, o, h, l, c, v))
 
     return candles_12h
 
