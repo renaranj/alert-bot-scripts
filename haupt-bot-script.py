@@ -350,8 +350,9 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
     #elif min(c, o) >  d1_3_body and max(c, o) < d3_4_body:
     elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
-    
-    send_telegram_alert(symbol, messages, priority)
+            
+    if messages:
+       send_telegram_alert(symbol, messages, priority)
  
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
     if len(candles) < 80:
@@ -389,8 +390,9 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
         messages.append(f"🟢 Bullish Cloud Twist (Span A > B) on {tf_label}")
     elif senkou_a.iloc[-2] > senkou_b.iloc[-2] and senkou_a.iloc[-1] < senkou_b.iloc[-1]:
         messages.append(f"🔴 Bearish Cloud Twist (Span A < B) on {tf_label}")
-
-    send_telegram_alert(symbol, messages, priority)
+            
+    if messages:
+       send_telegram_alert(symbol, messages, priority)
                        
 def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
