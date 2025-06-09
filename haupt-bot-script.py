@@ -145,7 +145,7 @@ def get_candles(symbol, market_type, interval, limit= EMA_LONG_PERIOD + 1):
     return []
         
 def get_12h_candles_from_4h(candles_4h):
-    if len(candles_4h) < 3:
+    if len(candles_4h) < 4:
         return []
 
     candles_12h = []
@@ -160,7 +160,14 @@ def get_12h_candles_from_4h(candles_4h):
         timestamp, o, h, l, c, v = candle
         print(f"({timestamp},{o},{h},{l},{c},{v})")
         # Round down to the closest 4H anchor: 00:00, 04:00, ..., 20:00
-        dt = datetime.utcfromtimestamp(timestamp)
+        #dt = datetime.utcfromtimestamp(timestamp)
+        try:
+            ts = candle[0]
+            ts = ts / 1000 if ts > 1e12 else ts
+            dt = datetime.utcfromtimestamp(ts)
+        except Exception as e:
+            print(f"Invalid timestamp: {candle[0]} - {e}")
+            continue
         aligned_hour = (dt.hour // 4) * 4
         aligned_time = datetime(dt.year, dt.month, dt.day, aligned_hour)
         aligned_ts = int(aligned_time.timestamp())
@@ -458,7 +465,7 @@ def main():
     #alarm_candle_patterns(watchlist_symbols, 'futures', False)
         
     #allf_symbols = get_all_perpetual_symbols()
-    allf_symbols = [ ]    
+    allf_symbols = []    
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -466,7 +473,7 @@ def main():
         alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
         alarm_ichimoku_crosses(allf_symbol, candles_1d, "1D", False)
             
-    symbols = [ "BTC_USDT", "ETH_USDT", "ADA_USDT", "SOL_USDT" ]
+    symbols = [ "GOG_USDT" ]
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
