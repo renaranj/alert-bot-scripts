@@ -165,6 +165,7 @@ def get_12h_candles_from_4h(candles_4h):
             ts = candle[0]
             ts = ts / 1000 if ts > 1e12 else ts
             dt = datetime.utcfromtimestamp(ts)
+            print (f"{dt}")
         except Exception as e:
             print(f"Invalid timestamp: {candle[0]} - {e}")
             continue
@@ -477,6 +478,7 @@ def main():
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
+        print(f"{candles_12h")
         candles_1d = get_candles(symbol,"futures",interval="1D")
         candles_1W = get_candles(symbol,"futures",interval='Week1')
         candles_1M = get_candles(symbol,"futures",interval='Month1')
