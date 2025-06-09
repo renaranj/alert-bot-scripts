@@ -423,9 +423,9 @@ def main():
     
     open_spots = get_open_symbols("spot")
     for open_spot in open_spots:
-        candles_4h = get_candles(allf_symbol, "spot",interval="4H",limit=(EMA_LONG_PERIOD * 3))
+        candles_4h = get_candles(open_spot, "spot",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(allf_symbol,"spot",interval="1D")     
+        candles_1d = get_candles(open_spot,"spot",interval="1D")     
         closes_4h = [float(c[4]) for c in candles_4h]
         if len(closes_4h) < 51:
            continue
@@ -468,9 +468,9 @@ def main():
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=(EMA_LONG_PERIOD * 3))
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(symbols,"futures",interval="1D")
-        candles_1W = get_candles(symbols,"futures",interval='Week1')
-        candles_1M = get_candles(symbols,"futures",interval='Month1')
+        candles_1d = get_candles(symbol,"futures",interval="1D")
+        candles_1W = get_candles(symbol,"futures",interval='Week1')
+        candles_1M = get_candles(symbol,"futures",interval='Month1')
 
         if len(candles_4h) < 14:
             continue 
