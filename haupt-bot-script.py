@@ -448,8 +448,8 @@ def main():
     #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     #alarm_candle_patterns(watchlist_symbols, 'futures', False)
         
-    allf_symbols = get_all_perpetual_symbols()
-    #allf_symbols = []    
+    #allf_symbols = get_all_perpetual_symbols()
+    allf_symbols = ["L3_USDT"]    
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
