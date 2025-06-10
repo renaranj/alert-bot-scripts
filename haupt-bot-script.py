@@ -270,15 +270,16 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
 
     if len(candles_12h) < 200:
        return 
-    t, o, h, l, c, v = candles_4h[-1]
+    t, o, h, l, c, v = candles_4h[-2]
     h, l = float(h), float(l)
     closes_12h = [float(c[4]) for c in candles_12h]
     ema_200_12h = calculate_ema(closes_12h)
     print(f"{symbol}ema{ema_200_12h}:h{h}l{l}")
     if ema_200_12h > l and ema_200_12h < h:
        send_telegram_alert(symbol, 'touched Ema200_12H', priority)
-    if len(candles_1d) < 200:
-       return 
+    if len(candles_1d) < 201:
+       return
+    closes_1d = closes[:-1]
     closes_1d = [float(c[4]) for c in candles_1d]        
     ema_200_1d = calculate_ema(closes_1d)
     print(f"{symbol}ema{ema_200_1d}:h{h}l{l}")
@@ -315,14 +316,14 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
     lower_wick = min(c, o) - l
     total_range = h - l
     #d1_2_body = total_range/2 + l
-    d1_3_body = total_range/3 + l
-    d3_4_body = h - total_range/3
-    f61_8_boddy = h - total_range * 0.618
-    f38_2_boddy = l + total_range * 0.382
+    #d1_3_body = total_range/3 + l
+    #d3_4_body = h - total_range/3
+    #f61_8_boddy = h - total_range * 0.618
+    #f38_2_boddy = l + total_range * 0.382
     # Fibonacci 61.8% level
-    fib_618 = l + 0.618 * total_range
-    corp_top = max(o, c)
-    corp_bottom = min(o, c)
+    #fib_618 = l + 0.618 * total_range
+    #corp_top = max(o, c)
+    #corp_bottom = min(o, c)
 
     if total_range == 0:
         return "\n".join(messages)
@@ -330,7 +331,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
     body_ratio = body / total_range
     upper_ratio = upper_wick / total_range
     lower_ratio = lower_wick / total_range
-    print(f"{symbol}, (o {o}, h{h},l{l},c{c}) - (bd{body_ratio},up{upper_ratio},lo{lower_ratio})")
+    #print(f"{symbol}, (o {o}, h{h},l{l},c{c}) - (bd{body_ratio},up{upper_ratio},lo{lower_ratio})")
     # Hammer
     if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
     #if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3 and corp_bottom >= fib_618:
@@ -354,7 +355,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
     if len(candles) < 52:
         return ""
-    
+    candles = candles[:-1] if (tf_label == "4H" or tf_label == "1D")
     closes = [float(c[4]) for c in candles]
     current_close = closes[-1]
 
@@ -422,7 +423,7 @@ def main():
     for open_spot in open_spots:
         candles_4h = get_candles(open_spot, "spot",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        print(f"{open_spot}4h:{candles_4h[-1]}12h{candles_12h[-1]}")
+        #print(f"{open_spot}4h:{candles_4h[-1]}12h{candles_12h[-1]}")
         alarm_candle_patterns(open_spot, candles_12h, "12H", True)
         candles_1d = get_candles(open_spot,"spot",interval="1D")     
         closes_4h = [float(c[4]) for c in candles_4h]
