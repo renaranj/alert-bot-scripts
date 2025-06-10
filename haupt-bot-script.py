@@ -448,7 +448,7 @@ def main():
     #alarm_candle_patterns(watchlist_symbols, 'futures', False)
         
     #allf_symbols = get_all_perpetual_symbols()
-    allf_symbols = ["L3_USDT"]    
+    allf_symbols = ["L3_USDT", "AXL_USDT" ]    
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -456,11 +456,11 @@ def main():
         alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
         alarm_ichimoku_crosses(allf_symbol, candles_1d, "1D", False)
             
-    symbols = [ "GOG_USDT" ]
+    symbols = [ "GOG_USDT", "AXL_USDT" ]
     for symbol in symbols:
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        print(f"{candles_12h}")
+        print(f"{symbol}{candles_12h}")
         candles_1d = get_candles(symbol,"futures",interval="1D")
         candles_1W = get_candles(symbol,"futures",interval='Week1')
         candles_1M = get_candles(symbol,"futures",interval='Month1')
