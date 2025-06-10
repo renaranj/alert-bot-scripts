@@ -331,7 +331,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
     body_ratio = body / total_range
     upper_ratio = upper_wick / total_range
     lower_ratio = lower_wick / total_range
-    #print(f"{symbol}, (o {o}, h{h},l{l},c{c}) - (bd{body_ratio},up{upper_ratio},lo{lower_ratio})")
+    print(f"{symbol}, (o {o}, h{h},l{l},c{c}) - (bd{body_ratio},up{upper_ratio},lo{lower_ratio})")
     # Hammer
     if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
     #if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3 and corp_bottom >= fib_618:
