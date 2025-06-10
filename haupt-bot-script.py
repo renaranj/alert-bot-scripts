@@ -461,51 +461,7 @@ def main():
         candles_4h = get_candles(symbol,"futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(symbol,"futures",interval="1D")
-        candles_1W = get_candles(symbol,"futures",interval='Week1')
-        candles_1M = get_candles(symbol,"futures",interval='Month1')
 
-        if len(candles_4h) < 14:
-            continue 
-                
-        closes_4h = [float(c[4]) for c in candles_4h]
-        closes_12h = [float(c[4]) for c in candles_12h]
-        closes_1d = [float(c[4]) for c in candles_1d]
-        closes_1W = [float(c[4]) for c in candles_1W]
-        closes_1M = [float(c[4]) for c in candles_1M]
-
-        change_pct_1d = 0
-        change_pct_1W = 0
-        change_pct_1M = 0
-        change_pct_4h = ((closes_4h[-1] - closes_4h[-2]) / closes_4h[-2]) * 100
-        #print(f"{symbol} {closes_4h[-1]} {closes_4h[-2]}") 
-        if len(closes_1d) > 2: 
-            change_pct_1d = ((closes_1d[-1] - closes_1d[-2]) / closes_1d[-2]) * 100
-        if len(closes_1W) > 2: 
-            change_pct_1W = ((closes_1W[-1] - closes_1W[-2]) / closes_1W[-2]) * 100
-        if len(closes_1M) > 2:
-            change_pct_1M = ((closes_1M[-1] - closes_1M[-2]) / closes_1M[-2]) * 100
-
-        rsi_4h = 0
-        rsi_1d = 0
-        if len(candles_4h) > 14:
-            rsi_4h = calculate_rsi(closes_4h)
-        if len(candles_1d) > 14:
-            rsi_1d = calculate_rsi(closes_1d)
-
-        macd_4h_condition = False
-        macd_1d_condition = False
-        if len(candles_4h) >= 50:
-            macd_4h, signal_4h, hist_4h = calculate_macd(closes_4h)
-            macd_4h_condition = macd_4h > 0 and signal_4h > 0 and hist_4h > 0
-        if len(candles_1d) >= 50:
-            macd_1d, signal_1d, hist_1d = calculate_macd(closes_1d)
-            macd_1d_condition = macd_1d > 0 and signal_1d > 0 and hist_1d > 0
-            #print(f"{symbol} MACD: {macd_1d:.3f}, Signal: {signal_1d:.3f}, Histogram: {hist_1d:.3f}")
-                
-        if change_pct_4h > PRICE_CHANGE_THRESHOLD and rsi_4h and rsi_4h > RSI_THRESHOLD:
-            message = f"🚨 {sym_fut}\n4h:{change_pct_4h:.2f}% rsi:{rsi_4h:.2f} macd:{macd_4h_condition}\n1D:{change_pct_1d:.2f}% rsi:{rsi_1d:.2f} macd:{macd_1d_condition}\n W:{change_pct_1W:.2f}% M:{change_pct_1M:.2f}%\n"
-            #send_telegram_alert(message)
-            print(f"{message}")
 
 if __name__ == "__main__":
     main()
