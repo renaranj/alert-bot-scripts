@@ -355,7 +355,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
     if len(candles) < 52:
         return ""
-    candles = candles[:-1] if (tf_label == "4H" or tf_label == "1D")
+    candles = candles if (tf_label == "12H") else candles[:-1]
     closes = [float(c[4]) for c in candles]
     current_close = closes[-1]
 
