@@ -270,7 +270,7 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
 
     if len(candles_12h) < 200:
        return 
-    t, o, h, l, c, v = candles_4h[-2]
+    t, o, h, l, c, v = candles_4h[-1]
     h, l = float(h), float(l)
     closes_12h = [float(c[4]) for c in candles_12h]
     ema_200_12h = calculate_ema(closes_12h)
@@ -359,7 +359,6 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
 
     messages = []
 
-    candles = candles[:-1]
     tenkan, kijun, senkou_a, senkou_b = calculate_ichimoku(candles)
     # Ichimoku Cloud boundaries
     latest_senkou_a = senkou_a.iloc[-27] if len(senkou_a) >= 27 else None
