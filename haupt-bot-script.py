@@ -392,7 +392,7 @@ def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
        symbol = symbol.replace("_USDT", "USDT.P")
     prefix = "🚨" if priority else ""
-    message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n" + message
+    message = f"{prefix}{symbol}(https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n" + message
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
         "chat_id": TELEGRAM_CHAT_ID,
