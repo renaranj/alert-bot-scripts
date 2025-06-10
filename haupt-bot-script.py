@@ -97,9 +97,9 @@ def get_open_symbols(market_type="spot"):
     return []
 
 def get_candles(symbol, market_type, interval, limit= EMA_LONG_PERIOD + 1):
- interval = "4h" if market_type == "spot" else "Hour4"
- interval = "1d" if market_type == "spot" else "Day1"
  if market_type == "spot":
+    interval = "4h" if interval == "4H"
+    interval = "1d" if interval == "1D"
     url = f"https://api.mexc.com/api/v3/klines"
     params = {'symbol': symbol, 'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
@@ -113,6 +113,8 @@ def get_candles(symbol, market_type, interval, limit= EMA_LONG_PERIOD + 1):
     ]
     return candles        
  elif market_type == "futures":
+    interval = "Hour4" if interval == "4H"
+    interval = "Day1" if interval == "1D"
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
     params = {'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
@@ -417,7 +419,7 @@ def main():
     for open_spot in open_spots:
         candles_4h = get_candles(open_spot, "spot",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        print(f"{open_spot}4h:{candles_4h[-2]}12h{candles_12h[-1]}")
+        print(f"{open_spot}4h:({candles_4h[-2]},{candles_4h[-1]}) 12h({candles_12h[-2]},{candles_12h[-1]})")
         alarm_candle_patterns(open_spot, candles_12h, "12H", True)
         candles_1d = get_candles(open_spot,"spot",interval="1D")     
         closes_4h = [float(c[4]) for c in candles_4h]
