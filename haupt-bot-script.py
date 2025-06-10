@@ -268,20 +268,17 @@ def calculate_ichimoku(candles):
 
 def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
 
-    if len(candles_4h) < 601:
-       return   
     if len(candles_12h) < 200:
        return 
     t, o, h, l, c, v = candles_4h[-2]
     h, l = float(h), float(l)
+    closes_12h = [float(c[4]) for c in candles_12h]
     ema_200_12h = calculate_ema(closes_12h)
     if ema_200_12h > l and ema_200_12h < h:
        send_telegram_alert(symbol, 'touched Ema200_12H', priority)
     if len(candles_1d) < 200:
        return 
     closes_1d = [float(c[4]) for c in candles_1d]        
-    t, o, h, l, c, v = candles_4h[-2]
-    h, l = float(h), float(l)
     ema_200_1d = calculate_ema(closes_1d)
     if ema_200_1d > l and ema_200_1d < h:
        send_telegram_alert(symbol, 'touched Ema200_1d', priority)
@@ -395,7 +392,7 @@ def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
        symbol = symbol.replace("_USDT", "USDT.P")
     prefix = "🚨" if priority else ""
-    "{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n".join(message)
+    message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n" + message
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
         "chat_id": TELEGRAM_CHAT_ID,
