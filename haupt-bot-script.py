@@ -353,13 +353,14 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
     if len(candles) < 52:
         return ""
-
-    tenkan, kijun, senkou_a, senkou_b = calculate_ichimoku(candles)
+    
     closes = [float(c[4]) for c in candles]
     current_close = closes[-1]
 
     messages = []
 
+    candles = candles[:-1]
+    tenkan, kijun, senkou_a, senkou_b = calculate_ichimoku(candles)
     # Ichimoku Cloud boundaries
     latest_senkou_a = senkou_a.iloc[-27] if len(senkou_a) >= 27 else None
     latest_senkou_b = senkou_b.iloc[-27] if len(senkou_b) >= 27 else None
@@ -370,7 +371,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
     cloud_bottom = min(latest_senkou_a, latest_senkou_b)
 
     # Tenkan/Kijun Cross
-    print(f"[{symbol}]ichimoku -2({tenkan.iloc[-2]}{kijun.iloc[-2]}),-1({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({senkou_a.iloc[-27]},{senkou_b.iloc[-27]})")
+    print(f"[{symbol}]ichimoku -2({tenkan.iloc[-2]},{kijun.iloc[-2]}),-1({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({senkou_a.iloc[-27]},{senkou_b.iloc[-27]})")
     if tenkan.iloc[-2] < kijun.iloc[-2] and tenkan.iloc[-1] > kijun.iloc[-1]:
         if current_close > cloud_top:
             messages.append(f"🟢 Bullish Tenkan/Kijun cross above cloud on {tf_label}")
@@ -454,10 +455,8 @@ def main():
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(allf_symbol,"futures",interval="1D",limit=201)
+        candles_1d = get_candles(allf_symbol,"futures",interval="1D",limit=601)
         alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
-        alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False)
-        candles_1d = get_candles(allf_symbol,"futures",interval="1D",limit=52)    
         alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False)
             
     symbols = [ "GOG_USDT", "AXL_USDT" ]
