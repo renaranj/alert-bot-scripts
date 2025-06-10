@@ -371,12 +371,12 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
 
     # Tenkan/Kijun Cross
     print(f"[{symbol}]ichimoku -2({tenkan.iloc[-2]},{kijun.iloc[-2]}),-1({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({senkou_a.iloc[-27]},{senkou_b.iloc[-27]})")
-    if tenkan.iloc[-2] < kijun.iloc[-2] and tenkan.iloc[-1] > kijun.iloc[-1]:
+    if tenkan.iloc[-2] < kijun.iloc[-2] and tenkan.iloc[-1] >= kijun.iloc[-1]:
         if current_close > cloud_top:
             messages.append(f"🟢 Bullish Tenkan/Kijun cross above cloud on {tf_label}")
         else:
             messages.append(f"🟡 Bullish Tenkan/Kijun cross below/inside cloud on {tf_label}")
-    elif tenkan.iloc[-2] > kijun.iloc[-2] and tenkan.iloc[-1] < kijun.iloc[-1]:
+    elif tenkan.iloc[-2] > kijun.iloc[-2] and tenkan.iloc[-1] <= kijun.iloc[-1]:
         if current_close < cloud_bottom:
             messages.append(f"🔴 Bearish Tenkan/Kijun cross below cloud on {tf_label}")
         else:
