@@ -289,7 +289,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
     if len(candles) < 3:
         return
     messages = []
-    pos = 2 if (patter_name = "12") else 3
+    pos = 2 if (patter_name == "12") else 3
     pos_0 = pos-1
     # We'll use the last two candles to detect engulfing patterns
     prev = candles[-pos]
