@@ -457,12 +457,12 @@ def main():
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(allf_symbol,"futures",interval="1D",limit=201)
         a,b,c,d = calculate_ichimoku(candles_1d)
-        print(f"{symbol} ichimoku ({a},{b},{c},{d})")
+        print(f"{allf_symbol} ichimoku ({a},{b},{c},{d})")
         e,f,g,h = alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
-        print(f"{symbol} ema200 ({e},{f},{g},{h})")
+        print(f"{allf_symbol} ema200 ({e},{f},{g},{h})")
         candles_1d = get_candles(allf_symbol,"futures",interval="1D",limit=52)    
         a,b,c,d = calculate_ichimoku(candles_1d)
-        print(f"{symbol} ichimoku ({a},{b},{c},{d})")
+        print(f"{allf_symboll} ichimoku ({a},{b},{c},{d})")
             
     symbols = [ "GOG_USDT", "AXL_USDT" ]
     for symbol in symbols:
