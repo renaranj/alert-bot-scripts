@@ -279,7 +279,7 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
        send_telegram_alert(symbol, 'touched Ema200_12H', priority)
     if len(candles_1d) < 201:
        return
-    closes_1d = closes[:-1]
+    candles_1d = candles_1d[:-1]
     closes_1d = [float(c[4]) for c in candles_1d]        
     ema_200_1d = calculate_ema(closes_1d)
     print(f"{symbol}ema{ema_200_1d}:h{h}l{l}")
