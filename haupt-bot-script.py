@@ -284,7 +284,6 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
     print(f"{symbol}ema{ema_200_1d}:h{h}l{l}")
     if ema_200_1d > l and ema_200_1d < h:
        send_telegram_alert(symbol, 'touched Ema200_1d', priority)
-    return h, l, ema_200_12h, ema_200_1d
 
 def alarm_candle_patterns(symbol, candles, pattern_name, priority):
     if len(candles) < 3:
@@ -371,6 +370,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
     cloud_bottom = min(latest_senkou_a, latest_senkou_b)
 
     # Tenkan/Kijun Cross
+    print(f"[{symbol}]ichimoku -2({tenkan.iloc[-2]}{kijun.iloc[-2]}),-1({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({senkou_a.iloc[-27]},{senkou_b.iloc[-27]})")
     if tenkan.iloc[-2] < kijun.iloc[-2] and tenkan.iloc[-1] > kijun.iloc[-1]:
         if current_close > cloud_top:
             messages.append(f"🟢 Bullish Tenkan/Kijun cross above cloud on {tf_label}")
@@ -383,13 +383,12 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
             messages.append(f"🟠 Bearish Tenkan/Kijun cross above/inside cloud on {tf_label}")
 
     # Senkou Span A/B Cross (Cloud twist)
-    if senkou_a.iloc[-2] < senkou_b.iloc[-2] and senkou_a.iloc[-1] > senkou_b.iloc[-1]:
-        messages.append(f"🟢 Bullish Cloud Twist (Span A > B) on {tf_label}")
-    elif senkou_a.iloc[-2] > senkou_b.iloc[-2] and senkou_a.iloc[-1] < senkou_b.iloc[-1]:
-        messages.append(f"🔴 Bearish Cloud Twist (Span A < B) on {tf_label}")
+    #if senkou_a.iloc[-2] < senkou_b.iloc[-2] and senkou_a.iloc[-1] > senkou_b.iloc[-1]:
+    #    messages.append(f"🟢 Bullish Cloud Twist (Span A > B) on {tf_label}")
+    #elif senkou_a.iloc[-2] > senkou_b.iloc[-2] and senkou_a.iloc[-1] < senkou_b.iloc[-1]:
+     #   messages.append(f"🔴 Bearish Cloud Twist (Span A < B) on {tf_label}")
        
     if messages:
-       print(f"[{symbol}]{messages}")
        messages = "\n".join(messages)
        send_telegram_alert(symbol, messages, priority)
                        
@@ -456,13 +455,10 @@ def main():
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(allf_symbol,"futures",interval="1D",limit=201)
-        a,b,c,d = calculate_ichimoku(candles_1d)
-        print(f"{allf_symbol} ichimoku ({a},{b},{c},{d})")
-        e,f,g,h = alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
-        print(f"{allf_symbol} ema200 ({e},{f},{g},{h})")
+        alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
+        alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False)
         candles_1d = get_candles(allf_symbol,"futures",interval="1D",limit=52)    
-        a,b,c,d = calculate_ichimoku(candles_1d)
-        print(f"{allf_symboll} ichimoku ({a},{b},{c},{d})")
+        alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False)
             
     symbols = [ "GOG_USDT", "AXL_USDT" ]
     for symbol in symbols:
