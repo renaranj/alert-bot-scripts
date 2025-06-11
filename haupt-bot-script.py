@@ -417,7 +417,7 @@ def main():
     for open_spot in open_spots:
         candles_4h = get_candles(open_spot, "spot",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        print(f"{open_spot}4h:({candles_4h[-2]},{candles_4h[-1]}) 12h({candles_12h[-2]},{candles_12h[-1]})")
+        print(f"{open_spot}4H:{candles_4h[-6:]} 12H: {candles_12h[-2:]}")
         alarm_candle_patterns(open_spot, candles_12h, "12H", True)
         candles_1d = get_candles(open_spot,"spot",interval="1D")     
         closes_4h = [float(c[4]) for c in candles_4h]
