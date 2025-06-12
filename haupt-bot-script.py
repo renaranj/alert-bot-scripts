@@ -368,7 +368,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
     if messages:
        messages = "\n".join(messages)
        if debug :
-        print(f"[{symbol}]\n{messages}\nichimoku ({tenkan.iloc[-2:]},{kijun.iloc[-2:]}), senk ({latest_senkou_a[-2:]},{latest_senkou_b[-2:]})")
+        print(f"[{symbol}]\n{messages}\nichimoku ({tenkan.iloc[-2:]},{kijun.iloc[-2:]}), senk ({senkou_a.iloc[-27]},{senkou_a.iloc[-27]}),({senkou_a.iloc[-26]},{senkou_a.iloc[-26]})")
        else :
         send_telegram_alert(symbol, messages, priority)
                        
