@@ -9,6 +9,8 @@ import csv
 import os
 import sqlite3
 
+create_ichimoku_table()
+
 DB_FILE = "ichimoku_data.db"
 
 # === PLACEHOLDERS ===
