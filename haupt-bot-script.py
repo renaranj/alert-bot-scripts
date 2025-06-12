@@ -348,7 +348,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
         send_telegram_alert(symbol, messages, priority)
  
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=False):
-    if len(candles) < 200:
+    if len(candles) < 201:
         return ""
     candles = candles if (tf_label == "12H") else candles[:-1]
     closes = [float(c[4]) for c in candles]
