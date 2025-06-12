@@ -358,8 +358,8 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
 
     tenkan, kijun, senkou_a, senkou_b = calculate_ichimoku(candles)
     # Ichimoku Cloud boundaries
-    latest_senkou_a = senkou_a.iloc[-27] if len(senkou_a) >= 27 else None
-    latest_senkou_b = senkou_b.iloc[-27] if len(senkou_b) >= 27 else None
+    latest_senkou_a = senkou_a.iloc[-26] if len(senkou_a) >= 26 else None
+    latest_senkou_b = senkou_b.iloc[-26] if len(senkou_b) >= 26 else None
     if latest_senkou_a is None or latest_senkou_b is None:
         return ""
 
@@ -378,16 +378,10 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
         else:
             messages.append(f"🟠 Bearish Tenkan/Kijun cross above/inside cloud on {tf_label}")
 
-    # Senkou Span A/B Cross (Cloud twist)
-    #if senkou_a.iloc[-2] < senkou_b.iloc[-2] and senkou_a.iloc[-1] > senkou_b.iloc[-1]:
-    #    messages.append(f"🟢 Bullish Cloud Twist (Span A > B) on {tf_label}")
-    #elif senkou_a.iloc[-2] > senkou_b.iloc[-2] and senkou_a.iloc[-1] < senkou_b.iloc[-1]:
-     #   messages.append(f"🔴 Bearish Cloud Twist (Span A < B) on {tf_label}")
-       
     if messages:
        messages = "\n".join(messages)
        if debug :
-        print(f"[{symbol}]\n{messages}\nichimoku -2({tenkan.iloc[-2]},{kijun.iloc[-2]}),-1({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({senkou_a.iloc[-27]},{senkou_b.iloc[-27]})")
+        print(f"[{symbol}]\n{messages}\nichimoku -2({tenkan.iloc[-2]},{kijun.iloc[-2]}),-1({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({latest_senkou_a},{latest_senkou_b})")
        else :
         send_telegram_alert(symbol, messages, priority)
                        
