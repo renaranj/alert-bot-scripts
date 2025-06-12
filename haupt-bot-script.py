@@ -284,7 +284,7 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
     if ema_200_1d > l and ema_200_1d < h:
        send_telegram_alert(symbol, 'touched Ema200_1d', priority)
 
-def alarm_candle_patterns(symbol, candles, pattern_name, priority):
+def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=False):
     if len(candles) < 3:
         return
     messages = []
@@ -329,7 +329,6 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
     body_ratio = body / total_range
     upper_ratio = upper_wick / total_range
     lower_ratio = lower_wick / total_range
-    print(f"{symbol}, (o {o}, h{h},l{l},c{c}) - (bd{body_ratio},up{upper_ratio},lo{lower_ratio})")
     # Hammer
     if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
     #if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3 and corp_bottom >= fib_618:
@@ -347,8 +346,10 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
          
     if messages:
        messages = "\n".join(messages)   
-       #print(f"[{symbol}]{messages}")
-       send_telegram_alert(symbol, messages, priority)
+       if debug:
+        print(f"{symbol}\n{messages}\n(o {o}, h{h},l{l},c{c}) - (bd:{body_ratio},upp:{upper_ratio},low:{lower_ratio})")
+       else : 
+        send_telegram_alert(symbol, messages, priority)
  
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=False):
     if len(candles) < 52:
