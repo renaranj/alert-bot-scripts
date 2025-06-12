@@ -234,7 +234,7 @@ def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smoo
     return k.iloc[-1] * 100, d.iloc[-1] * 100
 
 def calculate_ichimoku(candles):
-    if len(candles) < 52:
+    if len(candles) < 200:
         return None, None, None, None  # Not enough data
 
     highs = pd.Series([float(c[2]) for c in candles])
@@ -257,8 +257,12 @@ def calculate_ichimoku(candles):
     period52_high = highs.rolling(window=52).max()
     period52_low = lows.rolling(window=52).min()
     senkou_span_b = ((period52_high + period52_low) / 2).shift(26)
+    
+    # shift forward to match TradingView plotting
+    senkou_span_a_future = senkou_span_a.shift(-26)
+    senkou_span_b_future = senkou_span_b.shift(-26)
 
-    return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
+    return tenkan_sen, kijun_sen, senkou_span_a_future, senkou_span_b_future
 
 def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
 
@@ -417,8 +421,7 @@ def main():
     for open_spot in open_spots:
         candles_4h = get_candles(open_spot, "spot",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        print(f"{open_spot}4H:{candles_4h[-6:]} 12H: {candles_12h[-2:]}")
-        alarm_candle_patterns(open_spot, candles_12h, "12H", True)
+        #print(f"{open_spot}4H:{candles_4h[-6:]} 12H: {candles_12h[-2:]}")
         candles_1d = get_candles(open_spot,"spot",interval="1D")     
         closes_4h = [float(c[4]) for c in candles_4h]
         stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
@@ -452,7 +455,7 @@ def main():
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(allf_symbol,"futures",interval="1D",limit=601)
+        candles_1d = get_candles(allf_symbol,"futures",interval="1D")
         alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
         alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False)
             
