@@ -350,7 +350,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority):
        #print(f"[{symbol}]{messages}")
        send_telegram_alert(symbol, messages, priority)
  
-def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
+def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=False):
     if len(candles) < 52:
         return ""
     candles = candles if (tf_label == "12H") else candles[:-1]
@@ -390,7 +390,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False):
        
     if messages:
        messages = "\n".join(messages)
-       send_telegram_alert(symbol, messages, priority)
+       print(f"{messages}") if debug else send_telegram_alert(symbol, messages, priority)
                        
 def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
@@ -450,14 +450,14 @@ def main():
     #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     #alarm_candle_patterns(watchlist_symbols, 'futures', False)
         
-    #allf_symbols = get_all_perpetual_symbols()
-    allf_symbols = ["L3_USDT", "AXL_USDT" ]    
+    allf_symbols = get_all_perpetual_symbols()
+    #allf_symbols = ["L3_USDT", "AXL_USDT" ]    
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(allf_symbol,"futures",interval="1D")
         alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
-        alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False)
+        alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False, True)
             
     symbols = [ "GOG_USDT", "AXL_USDT" ]
     for symbol in symbols:
