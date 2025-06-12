@@ -257,12 +257,8 @@ def calculate_ichimoku(candles):
     period52_high = highs.rolling(window=52).max()
     period52_low = lows.rolling(window=52).min()
     senkou_span_b = ((period52_high + period52_low) / 2).shift(26)
-    
-    # shift forward to match TradingView plotting
-    senkou_span_a_future = senkou_span_a.shift(-26)
-    senkou_span_b_future = senkou_span_b.shift(-26)
 
-    return tenkan_sen, kijun_sen, senkou_span_a_future, senkou_span_b_future
+    return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
 
 def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
 
@@ -352,7 +348,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
         send_telegram_alert(symbol, messages, priority)
  
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=False):
-    if len(candles) < 52:
+    if len(candles) < 200:
         return ""
     candles = candles if (tf_label == "12H") else candles[:-1]
     closes = [float(c[4]) for c in candles]
@@ -371,7 +367,6 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
     cloud_bottom = min(latest_senkou_a, latest_senkou_b)
 
     # Tenkan/Kijun Cross
-    print(f"[{symbol}]ichimoku -2({tenkan.iloc[-2]},{kijun.iloc[-2]}),-1({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({senkou_a.iloc[-27]},{senkou_b.iloc[-27]})")
     if tenkan.iloc[-2] < kijun.iloc[-2] and tenkan.iloc[-1] >= kijun.iloc[-1]:
         if current_close > cloud_top:
             messages.append(f"🟢 Bullish Tenkan/Kijun cross above cloud on {tf_label}")
@@ -391,7 +386,10 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
        
     if messages:
        messages = "\n".join(messages)
-       print(f"{messages}") if debug else send_telegram_alert(symbol, messages, priority)
+       if debug :
+        print(f"[{symbol}]\n{messages}\nichimoku -2({tenkan.iloc[-2]},{kijun.iloc[-2]}),-1({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({senkou_a.iloc[-27]},{senkou_b.iloc[-27]})")
+       else :
+        send_telegram_alert(symbol, messages, priority)
                        
 def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
