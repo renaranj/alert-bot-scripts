@@ -446,8 +446,8 @@ def main():
 
     create_ichimoku_table()
 
-    open_spots = get_open_symbols("spot")
-    #open_spots = []    
+    #open_spots = get_open_symbols("spot")
+    open_spots = []    
     for open_spot in open_spots:
         candles_4h = get_candles(open_spot, "spot",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -462,8 +462,8 @@ def main():
            if hour == 0:
               alarm_candle_patterns(open_spot, candles_1d, "1D", True, True)
                 
-    open_futures = get_open_symbols("futures")
-    #open_futures = []
+    #open_futures = get_open_symbols("futures")
+    open_futures = []
     for open_future in open_futures:
         candles_4h = get_candles(open_future, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -480,8 +480,8 @@ def main():
     #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
     #alarm_candle_patterns(watchlist_symbols, 'futures', False)
         
-    allf_symbols = get_all_perpetual_symbols()
-    #allf_symbols = ["L3_USDT", "AXL_USDT" ]    
+    #allf_symbols = get_all_perpetual_symbols()
+    allf_symbols = []    
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -494,6 +494,7 @@ def main():
         candles_4h = get_candles(symbol,"spot",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(symbol,"spot",interval="1D")
+        alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False, True)
         if hour in [4,8,16,20,0]:
             alarm_candle_patterns(symbol, candles_4h, "4H", True)
         if hour in [0, 12]:
