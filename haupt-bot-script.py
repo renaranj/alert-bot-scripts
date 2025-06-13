@@ -463,31 +463,25 @@ def main():
     print(f"Database will be created/used at: {db_path}")
     create_ichimoku_table()
 
-    #open_spots = get_open_symbols("spot")
-    open_spots = []    
+    open_spots = get_open_symbols("spot")
+    #open_spots = []    
     for open_spot in open_spots:
         candles_4h = get_candles(open_spot, "spot",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
         #print(f"{open_spot}4H:{candles_4h[-6:]} 12H: {candles_12h[-2:]}")
         candles_1d = get_candles(open_spot,"spot",interval="1D")     
-        closes_4h = [float(c[4]) for c in candles_4h]
-        stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
-        if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
-           alarm_candle_patterns(open_spot, candles_4h, candles_12h, candles_1d, True, False)
+        alarm_candle_patterns(open_spot, candles_4h, candles_12h, candles_1d, True, False)
                 
-    #open_futures = get_open_symbols("futures")
-    open_futures = []
+    open_futures = get_open_symbols("futures")
+    #open_futures = []
     for open_future in open_futures:
         candles_4h = get_candles(open_future, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(open_future,"futures",interval="1D")     
-        closes_4h = [float(c[4]) for c in candles_4h]
-        stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
-        if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
-           alarm_candle_patterns(open_future, candles_4h, candles_12h, candles_1d, True, False)
+        alarm_candle_patterns(open_future, candles_4h, candles_12h, candles_1d, True, False)
         
-    #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    watchlist_symbols = []
+    watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
+    #watchlist_symbols = []
     for watchlist_symbol in watchlist_symbols:
         candles_4h = get_candles(watchlist_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
