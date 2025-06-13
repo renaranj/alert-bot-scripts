@@ -9,9 +9,7 @@ import csv
 import os
 import sqlite3
 
-create_ichimoku_table()
-
-DB_FILE = "ichimoku_data.db"
+DB_FILE = "candles_data.db"
 
 # === PLACEHOLDERS ===
 TELEGRAM_TOKEN = "7716430771:AAHqCZNoDACm3qlaue4G_hTJkyrxDRV9uxo"
@@ -425,7 +423,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
 def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
        symbol = symbol.replace("_USDT", "USDT.P")
-    prefix = "🚨" if priority else ""
+    prefix = "🚨🚨" if priority else ""
     message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n{message}"
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
@@ -445,7 +443,6 @@ def send_telegram_alert(symbol, message, priority):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    create_ichimoku_table()
 
     open_spots = get_open_symbols("spot")
     #open_spots = []    
@@ -490,12 +487,19 @@ def main():
         alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
         alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False, True)
             
-    symbols = [ "GOG_USDT", "AXL_USDT" ]
+    symbols = [ "BTCUSDT" ]
     for symbol in symbols:
-        candles_4h = get_candles(symbol,"futures",interval="4H",limit=601)
+        candles_4h = get_candles(symbol,"spot",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(symbol,"futures",interval="1D")
+        candles_1d = get_candles(symbol,"spot",interval="1D")
+        if hour in [4,8,16,20,0]:
+            alarm_candle_patterns(symbol, candles_4h, "4H", True)
+        if hour in [0, 12]:
+            alarm_candle_patterns(symbol, candles_12h, "12H", True)
+        if hour == 0:
+            alarm_candle_patterns(symbol, candles_1d, "1D", True)
 
 
 if __name__ == "__main__":
+    create_ichimoku_table()
     main()
