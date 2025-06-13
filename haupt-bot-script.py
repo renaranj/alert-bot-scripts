@@ -325,7 +325,7 @@ def detect_candle_patterns(candles, pattern_name):
     elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
          
-    return "\n".join(messages)   
+    return messages  
 
 def calculate_ichimoku(candles):
     if len(candles) < 200:
@@ -382,12 +382,12 @@ def alarm_candle_patterns(symbol, candles_4h, candles_12h, candles_1d, priority=
     
     if hour in [4,8,16,20,0]:
         candles_4h = candles_4h[:-1]
-        alarm_candle_patterns(candles_4h, "4H").append(messages)
+        detect_candle_patterns(candles_4h, "4H").append(messages)
     if hour in [0, 12]:
-        alarm_candle_patterns(candles_12h, "12H").append(messages)
+        detec_candle_patterns(candles_12h, "12H").append(messages)
     if hour == 0:
         candles_1d = candles_1d[:-1]
-        alarm_candle_patterns(candles_1d, "1D").append(messages)     
+        detec_candle_patterns(candles_1d, "1D").append(messages)     
     
     if messages:
        messages = "\n".join(messages)   
