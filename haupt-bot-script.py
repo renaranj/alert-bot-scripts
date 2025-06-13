@@ -444,6 +444,8 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
 
+    create_ichimoku_table()
+
     open_spots = get_open_symbols("spot")
     #open_spots = []    
     for open_spot in open_spots:
@@ -501,5 +503,4 @@ def main():
 
 
 if __name__ == "__main__":
-    create_ichimoku_table()
-    #main()
+    main()
