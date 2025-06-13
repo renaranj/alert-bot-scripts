@@ -459,7 +459,7 @@ def send_telegram_alert(symbol, message, priority):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    db_path = os.path.abspath("ichimoku_data.db")
+    db_path = os.path.abspath("candles_data.db")
     print(f"Database will be created/used at: {db_path}")
     create_ichimoku_table()
 
