@@ -279,6 +279,53 @@ def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smoo
     k = stoch_rsi.rolling(smooth_k).mean()
     d = k.rolling(smooth_d).mean()
     return k.iloc[-1] * 100, d.iloc[-1] * 100
+    
+def detect_candle_patterns(candles, pattern_name):
+    if len(candles) < 3:
+        return
+    messages = []
+    
+    # We'll use the last two candles to detect engulfing patterns
+    prev = candles[-2]
+    curr = candles[-1]
+
+    t1, o1, h1, l1, c1, v1 = prev
+    t2, o2, h2, l2, c2, v2 = curr
+    o1, c1 = float(o1), float(c1)
+    o2, c2 = float(o2), float(c2)
+    h2, l2 = float(h2), float(l2)
+
+    # Bullish Engulfing: previous candle is red, current is green and body engulfs
+    if c1 < o1 and c2 > o2 and o2 < c1 and c2 > o1:
+        messages.append(f"🟢 Bullish Engulfing on {pattern_name}")
+    # Bearish Engulfing: previous candle is green, current is red and body engulfs
+    elif c1 > o1 and c2 < o2 and o2 > c1 and c2 < o1:
+        messages.append(f"🔴 Bearish Engulfing on {pattern_name}")
+
+    # Continue checking other patterns for the last candle
+    o, h, l, c = o2, h2, l2, c2
+    body = abs(c - o)
+    upper_wick = h - max(c, o)
+    lower_wick = min(c, o) - l
+    total_range = h - l
+
+    if total_range == 0:
+        return "\n".join(messages)
+
+    body_ratio = body / total_range
+    upper_ratio = upper_wick / total_range
+    lower_ratio = lower_wick / total_range
+    # Hammer
+    if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
+        messages.append(f"🔨 Hammer detected on {pattern_name}")
+    # Inverted Hammer
+    elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
+        messages.append(f"🔻 Inverted Hammer on {pattern_name}")
+    # Spinning Top
+    elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
+        messages.append(f"🌀 Spinning Top on {pattern_name}")
+         
+    return "\n".join(messages)   
 
 def calculate_ichimoku(candles):
     if len(candles) < 200:
@@ -327,52 +374,21 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
     if ema_200_1d > l and ema_200_1d < h:
        send_telegram_alert(symbol, 'touched Ema200_1d', priority)
 
-def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=False):
-    if len(candles) < 3:
-        return
+def alarm_candle_patterns(symbol, candles_4h, candles_12h, candles_1d, priority=False, debug=False):
+    now = datetime.now(timezone.utc)
+    hour, minute = now.hour, now.minute
+
     messages = []
-    pos = 2 if (pattern_name == "12H") else 3
-    pos_0 = pos-1
-    # We'll use the last two candles to detect engulfing patterns
-    prev = candles[-pos]
-    curr = candles[-pos_0]
-
-    t1, o1, h1, l1, c1, v1 = prev
-    t2, o2, h2, l2, c2, v2 = curr
-    o1, c1 = float(o1), float(c1)
-    o2, c2 = float(o2), float(c2)
-    h2, l2 = float(h2), float(l2)
-
-    # Bullish Engulfing: previous candle is red, current is green and body engulfs
-    if c1 < o1 and c2 > o2 and o2 < c1 and c2 > o1:
-        messages.append(f"🟢 Bullish Engulfing on {pattern_name}")
-    # Bearish Engulfing: previous candle is green, current is red and body engulfs
-    elif c1 > o1 and c2 < o2 and o2 > c1 and c2 < o1:
-        messages.append(f"🔴 Bearish Engulfing on {pattern_name}")
-
-    # Continue checking other patterns for the last candle
-    o, h, l, c = o2, h2, l2, c2
-    body = abs(c - o)
-    upper_wick = h - max(c, o)
-    lower_wick = min(c, o) - l
-    total_range = h - l
-
-    if total_range == 0:
-        return "\n".join(messages)
-
-    body_ratio = body / total_range
-    upper_ratio = upper_wick / total_range
-    lower_ratio = lower_wick / total_range
-    # Hammer
-    if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
-        messages.append(f"🔨 Hammer detected on {pattern_name}")
-    # Inverted Hammer
-    elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
-        messages.append(f"🔻 Inverted Hammer on {pattern_name}")
-    # Spinning Top
-    elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
-        messages.append(f"🌀 Spinning Top on {pattern_name}")
-         
+    
+    if hour in [4,8,16,20,0]:
+        candles_4h = candles_4h[:-1]
+        alarm_candle_patterns(candles_4h, "4H").append(messages)
+    if hour in [0, 12]:
+        alarm_candle_patterns(candles_12h, "12H").append(messages)
+    if hour == 0:
+        candles_1d = candles_1d[:-1]
+        alarm_candle_patterns(candles_1d, "1D").append(messages)     
+    
     if messages:
        messages = "\n".join(messages)   
        if debug:
@@ -456,11 +472,7 @@ def main():
         closes_4h = [float(c[4]) for c in candles_4h]
         stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
         if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
-           alarm_candle_patterns(open_spot, candles_4h, "4H", True)
-           if hour in [0, 12]:
-              alarm_candle_patterns(open_spot, candles_12h, "12H", True, True)
-           if hour == 0:
-              alarm_candle_patterns(open_spot, candles_1d, "1D", True, True)
+           alarm_candle_patterns(open_spot, candles_4h, candles_12h, candles_1d, True, False)
                 
     #open_futures = get_open_symbols("futures")
     open_futures = []
@@ -471,17 +483,19 @@ def main():
         closes_4h = [float(c[4]) for c in candles_4h]
         stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
         if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
-           alarm_candle_patterns(open_future, candles_4h, "4H", True)
-           if hour in [0, 12]:
-              alarm_candle_patterns(open_future, candles_12h, "12H", True, True)
-           if hour == 0:
-              alarm_candle_patterns(open_future, candles_1d, "1D", True, True)
+           alarm_candle_patterns(open_future, candles_4h, candles_12h, candles_1d, True, False)
         
     #watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
-    #alarm_candle_patterns(watchlist_symbols, 'futures', False)
+    watchlist_symbols = []
+    for watchlist_symbol in watchlist_symbols:
+        candles_4h = get_candles(watchlist_symbol, "futures",interval="4H",limit=601)
+        candles_12h = get_12h_candles_from_4h(candles_4h)
+        candles_1d = get_candles(watchlist_symbol,"futures",interval="1D")
+        if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
+           alarm_candle_patterns(watchlist_symbol, candles_4h, candles_12h, candles_1d, False, False)
         
     #allf_symbols = get_all_perpetual_symbols()
-    allf_symbols = []    
+    allf_symbols = [ "BTC_USDT" ]    
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -489,19 +503,6 @@ def main():
         alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
         alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False, True)
             
-    symbols = [ "BTCUSDT" ]
-    for symbol in symbols:
-        candles_4h = get_candles(symbol,"spot",interval="4H",limit=601)
-        candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(symbol,"spot",interval="1D")
-        alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False, True)
-        if hour in [4,8,16,20,0]:
-            alarm_candle_patterns(symbol, candles_4h, "4H", True)
-        if hour in [0, 12]:
-            alarm_candle_patterns(symbol, candles_12h, "12H", True)
-        if hour == 0:
-            alarm_candle_patterns(symbol, candles_1d, "1D", True)
-
 
 if __name__ == "__main__":
     main()
