@@ -502,4 +502,4 @@ def main():
 
 if __name__ == "__main__":
     create_ichimoku_table()
-    main()
+    #main()
