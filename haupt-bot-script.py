@@ -486,6 +486,8 @@ def main():
         candles_4h = get_candles(watchlist_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(watchlist_symbol,"futures",interval="1D")
+        closes_4h = [float(c[4]) for c in candles_4h]
+        stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
         if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
            alarm_candle_patterns(watchlist_symbol, candles_4h, candles_12h, candles_1d, False, False)
         
