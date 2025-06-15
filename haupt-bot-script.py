@@ -354,15 +354,16 @@ def calculate_ichimoku(candles):
 
     return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
 
-def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
+def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority=False,debug=False):
 
     if len(candles_12h) < 200:
        return 
-    t, o, h, l, c, v = candles_4h[-2]
+    t, o, h, l, c, v = candles_4h[-1]
     h, l = float(h), float(l)
     closes_12h = [float(c[4]) for c in candles_12h]
     ema_200_12h = calculate_ema(closes_12h)
-    print(f"{symbol}ema{ema_200_12h}:h{h}l{l}")
+     if debug:
+        print(f"{symbol} ema:{ema_200_12h} h:{h},l:{l}")
     if ema_200_12h > l and ema_200_12h < h:
        send_telegram_alert(symbol, 'touched Ema200_12H', priority)
     if len(candles_1d) < 201:
@@ -370,7 +371,8 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority):
     candles_1d = candles_1d[:-1]
     closes_1d = [float(c[4]) for c in candles_1d]        
     ema_200_1d = calculate_ema(closes_1d)
-    print(f"{symbol}ema{ema_200_1d}:h{h}l{l}")
+    if debug:
+        print(f"{symbol} ema:{ema_200_1d} h:{h},l:{l}")
     if ema_200_1d > l and ema_200_1d < h:
        send_telegram_alert(symbol, 'touched Ema200_1d', priority)
 
@@ -487,19 +489,27 @@ def main():
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(watchlist_symbol,"futures",interval="1D")
         closes_4h = [float(c[4]) for c in candles_4h]
+        alarm_ichimoku_crosses(watchlist_symbol, candles_4h, '4H', False, True)
+        alarm_ichimoku_crosses(watchlist_symbol, candles_12h, '12H', False, True)
+        alarm_ichimoku_crosses(watchlist_symbol, candles_1d, '1D', False, True)
         stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
         if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
            alarm_candle_patterns(watchlist_symbol, candles_4h, candles_12h, candles_1d, False, False)
         
-    #allf_symbols = get_all_perpetual_symbols()
-    allf_symbols = [ "BTC_USDT" ]    
+    allf_symbols = get_all_perpetual_symbols()
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(allf_symbol,"futures",interval="1D")
-        alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, False)
-        alarm_ichimoku_crosses(allf_symbol, candles_1d, '1D', False, True)
-            
+        alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, True)
+    
+
+    #-----------BTCUSDT bearbeitung---------------------------------------------------#
+    candles_4h = get_candles("BTCUSDT", "spot",interval="4H",limit=601)
+    candles_12h = get_12h_candles_from_4h(candles_4h)
+    candles_1d = get_candles("BTCUSDT","spot",interval="1D")
+    alarm_candle_patterns("BTCUSDT", candles_4h, candles_12h, candles_1d, True, False)
+               
 
 if __name__ == "__main__":
     main()
