@@ -382,17 +382,17 @@ def alarm_candle_patterns(symbol, candles_4h, candles_12h, candles_1d, priority=
 
     messages = []
     
-    if hour in [4,8,16,20,0]:
-        candles_4h = candles_4h[:-1]
-        detect_candle_patterns(candles_4h, "4H").append(messages)
+    #if hour in [4,8,16,20,0]:
+    candles_4h = candles_4h[:-1]
+    messages = detect_candle_patterns(candles_4h, "4H") + messages
     if hour in [0, 12]:
-        detec_candle_patterns(candles_12h, "12H").append(messages)
+        messages = detec_candle_patterns(candles_12h, "12H") + messages
     if hour == 0:
         candles_1d = candles_1d[:-1]
-        detec_candle_patterns(candles_1d, "1D").append(messages)     
+        messages = detec_candle_patterns(candles_1d, "1D") + messages  
     
     if messages:
-       messages = "\n".join(messages)   
+       message = "\n".join(messages)   
        if debug:
         print(f"{symbol}\n{messages}\n(o {o}, h{h},l{l},c{c}) - (bd:{body_ratio},upp:{upper_ratio},low:{lower_ratio})")
         send_telegram_alert(symbol, messages, priority)
@@ -434,7 +434,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
     if messages:
        messages = "\n".join(messages)
        if debug :
-        print(f"[{symbol}]\n{messages}\nichimoku ({tenkan.iloc[-2:]},{kijun.iloc[-2:]}), senk ({senkou_a.iloc[-27]},{senkou_a.iloc[-27]}),({senkou_a.iloc[-26]},{senkou_a.iloc[-26]})")
+        print(f"[{symbol}]\n{messages}\nichimoku ({tenkan.iloc[-1:]},{kijun.iloc[-1:]}), senk ({senkou_a.iloc[-27]},{senkou_a.iloc[-27]}),({senkou_a.iloc[-26]},{senkou_a.iloc[-26]})")
        else :
         send_telegram_alert(symbol, messages, priority)
                        
