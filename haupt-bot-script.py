@@ -68,7 +68,14 @@ def load_ichimoku_from_db(symbol, timeframe):
     conn.close()
     return row  # returns tuple or None
         
-def get_all_perpetual_symbols():
+# For spot:
+def get_spot_symbols():
+    url = "https://api.mexc.com/api/v3/exchangeInfo"
+    res = requests.get(url).json()
+    symbols = [s["symbol"] for s in res["symbols"] if s["quoteAsset"] == "USDT" and s["status"] == "TRADING"]
+    return symbols
+# For perpetuals:    
+def get_perpetual_symbols():
     url = "https://contract.mexc.com/api/v1/contract/detail"
     res = requests.get(url).json()
     return [s["symbol"] for s in res["data"] if s["quoteCoin"] == "USDT"]
