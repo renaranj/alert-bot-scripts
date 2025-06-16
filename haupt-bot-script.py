@@ -7,9 +7,7 @@ import numpy as np
 import pandas as pd
 import csv
 import os
-import sqlite3
 
-DB_FILE = "candles_data.db"
 Watchlist_Path = "watchlists\Shorts.txt"
 
 # === PLACEHOLDERS ===
@@ -23,51 +21,7 @@ PRICE_CHANGE_THRESHOLD = 10 # in percent
 RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
-
-# Create table if not exists
-def create_ichimoku_table():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS ichimoku (
-            symbol TEXT,
-            timeframe TEXT,
-            tenkan REAL,
-            kijun REAL,
-            senkou_a REAL,
-            senkou_b REAL,
-            timestamp INTEGER,
-            PRIMARY KEY (symbol, timeframe)
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-# Save data to DB
-def save_ichimoku_to_db(symbol, timeframe, tenkan, kijun, senkou_a, senkou_b):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT OR REPLACE INTO ichimoku (symbol, timeframe, tenkan, kijun, senkou_a, senkou_b, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        symbol, timeframe, tenkan.iloc[-1], kijun.iloc[-1],
-        senkou_a.iloc[-26], senkou_b.iloc[-26],
-        int(time.time())
-    ))
-    conn.commit()
-    conn.close()
-
-# Retrieve data from DB
-def load_ichimoku_from_db(symbol, timeframe):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute('SELECT tenkan, kijun, senkou_a, senkou_b, timestamp FROM ichimoku WHERE symbol=? AND timeframe=?',
-                   (symbol, timeframe))
-    row = cursor.fetchone()
-    conn.close()
-    return row  # returns tuple or None
-        
+ 
 # For spot:
 def get_spot_symbols():
     url = "https://api.mexc.com/api/v3/exchangeInfo"
@@ -416,7 +370,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
     messages = []
 
     tenkan, kijun, senkou_a, senkou_b = calculate_ichimoku(candles)
-    save_ichimoku_to_db(symbol, tf_label, tenkan, kijun, senkou_a, senkou_b)
+
     # Ichimoku Cloud boundaries
     latest_senkou_a = senkou_a.iloc[-26] if len(senkou_a) >= 26 else None
     latest_senkou_b = senkou_b.iloc[-26] if len(senkou_b) >= 26 else None
@@ -468,7 +422,6 @@ def send_telegram_alert(symbol, message, priority):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    create_ichimoku_table()
 
     open_spots = get_open_symbols("spot")
     #open_spots = []    
