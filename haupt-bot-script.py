@@ -10,7 +10,7 @@ import os
 import sqlite3
 
 DB_FILE = "candles_data.db"
-Watchlist_Path = "watchlists\shorts.txt"
+Watchlist_Path = "watchlists\Shorts.txt"
 
 # === PLACEHOLDERS ===
 TELEGRAM_TOKEN = "7716430771:AAHqCZNoDACm3qlaue4G_hTJkyrxDRV9uxo"
@@ -501,7 +501,7 @@ def main():
         if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
            alarm_candle_patterns(watchlist_symbol, candles_4h, candles_12h, candles_1d, False, False)
         
-    allf_symbols = get_all_perpetual_symbols()
+    allf_symbols = get_perpetual_symbols()
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
