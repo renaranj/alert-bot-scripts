@@ -334,7 +334,7 @@ def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority=Fa
     ema_200_1d = calculate_ema(closes_1d)
     if debug:
         print(f"{symbol} ema:{ema_200_1d} h:{h},l:{l}")
-    if ema_200_1d > l and ema_200_1d < h:
+    if l < ema_200_1d < h:
        send_telegram_alert(symbol, 'touched Ema200_1d', priority)
 
 def alarm_candle_patterns(symbol, candles_4h, candles_12h, candles_1d, priority=False, debug=False):
