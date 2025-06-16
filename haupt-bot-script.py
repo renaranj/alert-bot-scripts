@@ -393,10 +393,10 @@ def alarm_candle_patterns(symbol, candles_4h, candles_12h, candles_1d, priority=
     candles_4h = candles_4h[:-1]
     messages = detect_candle_patterns(candles_4h, "4H")
     if hour in [0, 12]:
-        messages = detec_candle_patterns(candles_12h, "12H") + messages
+        messages = detect_candle_patterns(candles_12h, "12H") + messages
     if hour == 0:
         candles_1d = candles_1d[:-1]
-        messages = detec_candle_patterns(candles_1d, "1D") + messages  
+        messages = detect_candle_patterns(candles_1d, "1D") + messages  
     
     if messages:
        message = "\n".join(messages)   
