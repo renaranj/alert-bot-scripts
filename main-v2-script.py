@@ -8,7 +8,7 @@ import pandas as pd
 import csv
 import os
 import ccxt
-import talib
+import ta
 
 Watchlist_Path = "watchlists\Shorts.txt"
 
@@ -31,37 +31,39 @@ mexc = ccxt.mexc({
     'enableRateLimit': True
 })
 
-def get_candles_ccxt(symbol, timeframe='4h', limit=EMA_LONG_PERIOD+1):
+def get_candles_ccxt(symbol, timeframe='4h', limit=601):
     bars = mexc.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
     df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    df.set_index('timestamp', inplace=True)
     return df
 
 def analyze(symbol):
-    df = get_candles_ccxt(symbol, '4h', 601)
-    closes = df['close'].values
+    df = get_candles_ccxt(symbol, '4h', 600)
+
+    if len(df) < 200:
+        print(f"Not enough data for {symbol}")
+        return
+
     # EMA 200
-    ema_200 = talib.EMA(closes, timeperiod=200)[-1]
-    print(f"ema200_4h:{ema_200:.4f}")
+    df['ema200'] = ta.trend.ema_indicator(df['close'], window=200)
+   
     # RSI
-    rsi = talib.RSI(closes, timeperiod=14)[-1]
-    print(f"{rsi:.4f}")
+    df['rsi'] = ta.momentum.rsi(df['close'], window=14)
+   
     # StochRSI
-    rsi_series = talib.RSI(closes, timeperiod=14)
-    stoch_rsi_k, stoch_rsi_d = talib.STOCH(rsi_series, rsi_series, rsi_series,fastk_period=14, slowk_period=3, slowd_period=3)
-    stoch_rsi_k, stoch_rsi_d = stoch_rsi_k[-1], stoch_rsi_d[-1]
-    print(f"{stoch_rsi_k:.4f}")
-    # Candle patterns (for example Engulfing + Hammer)
-    engulfing = talib.CDLENGULFING(df['open'], df['high'], df['low'], df['close'])[-1]
-    hammer = talib.CDLHAMMER(df['open'], df['high'], df['low'], df['close'])[-1]
-    if engulfing != 0:
-      print(f"{symbol} Engulfing pattern detected: {engulfing}")
-    if hammer != 0:
-      print(f"{symbol} Hammer pattern detected: {engulfing}")
+    stoch_rsi = ta.momentum.stochrsi(df['close'], window=14, smooth1=3, smooth2=3)
+    df['stochrsi_k'] = stoch_rsi
+    df['stochrsi_d'] = stoch_rsi.rolling(3).mean()
+    
+    # Candle patterns (we have to implement them manually because `ta` doesn't include them)
+    last = df.iloc[-1]
+    print(f"{last['rsi']}")
+    print(f"{last['stochrsi_k']}")
 
     # EMA price touch example
-    last_high, last_low = df.iloc[-1]['high'], df.iloc[-1]['low']
-    if last_low < ema_200 < last_high:
-        print(f"{symbol} Price touched EMA 200\n")
+    if last['low'] < last['ema200'] < last['high']:
+        print(f" {symbol} Price touched EMA200 (4h): {last['ema200']:.2f}")
       
 # For spot:
 def get_spot_symbols():
