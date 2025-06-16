@@ -10,6 +10,7 @@ import os
 import sqlite3
 
 DB_FILE = "candles_data.db"
+Watchlist_Path = "watchlists\shorts.txt"
 
 # === PLACEHOLDERS ===
 TELEGRAM_TOKEN = "7716430771:AAHqCZNoDACm3qlaue4G_hTJkyrxDRV9uxo"
@@ -82,9 +83,8 @@ def load_watchlist_from_csv(file_path):
         for row in reader:
             for cell in row:
                 symbol = cell.strip()
-                if symbol.startswith("MEXC:") or symbol.startswith("BITGET:"):
+                if symbol.startswith("MEXC:"):
                    symbol = symbol.replace("MEXC:", "")
-                   symbol = symbol.replace("BITGET:", "")
                 if symbol.endswith(".P"):
                    symbol = symbol.replace(".P", "").replace("USDT", "") + "_USDT"
                 symbols.append(symbol)
@@ -279,6 +279,33 @@ def calculate_stoch_rsi(closes, rsi_period=14, stoch_period=14, smooth_k=3, smoo
     k = stoch_rsi.rolling(smooth_k).mean()
     d = k.rolling(smooth_d).mean()
     return k.iloc[-1] * 100, d.iloc[-1] * 100
+
+def calculate_ichimoku(candles):
+    if len(candles) < 200:
+        return None, None, None, None  # Not enough data
+
+    highs = pd.Series([float(c[2]) for c in candles])
+    lows = pd.Series([float(c[3]) for c in candles])
+    
+    # Tenkan-sen (Conversion Line)
+    nine_high = highs.rolling(window=9).max()
+    nine_low = lows.rolling(window=9).min()
+    tenkan_sen = (nine_high + nine_low) / 2
+
+    # Kijun-sen (Base Line)
+    period26_high = highs.rolling(window=26).max()
+    period26_low = lows.rolling(window=26).min()
+    kijun_sen = (period26_high + period26_low) / 2
+
+    # Senkou Span A (Leading Span A)
+    senkou_span_a = ((tenkan_sen + kijun_sen) / 2).shift(26)
+
+    # Senkou Span B (Leading Span B)
+    period52_high = highs.rolling(window=52).max()
+    period52_low = lows.rolling(window=52).min()
+    senkou_span_b = ((period52_high + period52_low) / 2).shift(26)
+
+    return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
     
 def detect_candle_patterns(candles, pattern_name):
     if len(candles) < 3:
@@ -327,33 +354,6 @@ def detect_candle_patterns(candles, pattern_name):
          
     return messages  
 
-def calculate_ichimoku(candles):
-    if len(candles) < 200:
-        return None, None, None, None  # Not enough data
-
-    highs = pd.Series([float(c[2]) for c in candles])
-    lows = pd.Series([float(c[3]) for c in candles])
-    
-    # Tenkan-sen (Conversion Line)
-    nine_high = highs.rolling(window=9).max()
-    nine_low = lows.rolling(window=9).min()
-    tenkan_sen = (nine_high + nine_low) / 2
-
-    # Kijun-sen (Base Line)
-    period26_high = highs.rolling(window=26).max()
-    period26_low = lows.rolling(window=26).min()
-    kijun_sen = (period26_high + period26_low) / 2
-
-    # Senkou Span A (Leading Span A)
-    senkou_span_a = ((tenkan_sen + kijun_sen) / 2).shift(26)
-
-    # Senkou Span B (Leading Span B)
-    period52_high = highs.rolling(window=52).max()
-    period52_low = lows.rolling(window=52).min()
-    senkou_span_b = ((period52_high + period52_low) / 2).shift(26)
-
-    return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
-
 def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority=False,debug=False):
 
     if len(candles_12h) < 200:
@@ -384,7 +384,7 @@ def alarm_candle_patterns(symbol, candles_4h, candles_12h, candles_1d, priority=
     
     #if hour in [4,8,16,20,0]:
     candles_4h = candles_4h[:-1]
-    messages = detect_candle_patterns(candles_4h, "4H") + messages
+    messages = detect_candle_patterns(candles_4h, "4H")
     if hour in [0, 12]:
         messages = detec_candle_patterns(candles_12h, "12H") + messages
     if hour == 0:
@@ -461,8 +461,6 @@ def send_telegram_alert(symbol, message, priority):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-    db_path = os.path.abspath("candles_data.db")
-    print(f"Database will be created/used at: {db_path}")
     create_ichimoku_table()
 
     open_spots = get_open_symbols("spot")
@@ -482,7 +480,7 @@ def main():
         candles_1d = get_candles(open_future,"futures",interval="1D")     
         alarm_candle_patterns(open_future, candles_4h, candles_12h, candles_1d, True, False)
         
-    watchlist_symbols = load_watchlist_from_csv("watchlists/Shorts.csv")
+    watchlist_symbols = load_watchlist_from_csv(Watchlist_Path)
     #watchlist_symbols = []
     for watchlist_symbol in watchlist_symbols:
         candles_4h = get_candles(watchlist_symbol, "futures",interval="4H",limit=601)
