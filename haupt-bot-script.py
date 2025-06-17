@@ -315,8 +315,8 @@ def detect_candle_patterns(candles, pattern_name,debug=False):
     elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
     if debug:
-     messages = "\n".join(messages) + f"\n(o {o}, h{h},l{l},c{c}) - (bd:{body_ratio},upp:{upper_ratio},low:{lower_ratio})"     
-    return messages  
+       messages.append(f"(o {o}, h{h},l{l},c{c}) - (bd:{body_ratio},upp:{upper_ratio},low:{lower_ratio})")     
+    return "\n".join(messages)
 
 def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority=False,debug=False):
 
@@ -348,12 +348,12 @@ def alarm_candle_patterns(symbol, candles_4h, candles_12h, candles_1d, priority=
     
     #if hour in [4,8,16,20,0]:
     candles_4h = candles_4h[:-1]
-    messages = detect_candle_patterns(candles_4h, "4H",debug)
+    messages.append(detect_candle_patterns(candles_4h, "4H",debug))
     if hour in [0, 12]:
-        messages = detect_candle_patterns(candles_12h, "12H",debug) + messages
+        messages.append(detect_candle_patterns(candles_12h, "12H",debug))
     if hour == 0:
         candles_1d = candles_1d[:-1]
-        messages = detect_candle_patterns(candles_1d, "1D", debug) + messages  
+        messages.append(detect_candle_patterns(candles_1d, "1D", debug))
     
     if messages:
        message = "\n".join(messages)   
