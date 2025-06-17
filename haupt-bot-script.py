@@ -301,7 +301,7 @@ def detect_candle_patterns(candles, pattern_name,debug=False):
     # Spinning Top
     elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
-    if debug:
+    if messages and debug:
        messages.append(f"(o {o}, h{h},l{l},c{c}) - (bd:{body_ratio},upp:{upper_ratio},low:{lower_ratio})")     
     return "\n".join(messages)
 
@@ -409,7 +409,8 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     
-    symbols =["T_USDT","ASR_USDT","KAITO_USDT","SCA_USDT"]
+    #symbols =["T_USDT","ASR_USDT","KAITO_USDT","SCA_USDT"]
+    symbols = get_allpairs_symbols("futures")
     for symbol in symbols:
       candles_4h = get_candles(symbol, "futures",interval="4H",limit=601)
       candles_12h = get_12h_candles_from_4h(candles_4h)
