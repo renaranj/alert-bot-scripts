@@ -257,7 +257,7 @@ def calculate_ichimoku(candles):
     return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
     
 def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=False):
-    candles = candles if pattern_name == "12H" else candles = candles[:-1]
+    candles = candles[:-1] if pattern_name != "12H" else candles
     if len(candles) < 3:
         return
     messages = []
