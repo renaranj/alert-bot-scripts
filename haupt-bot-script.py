@@ -8,7 +8,7 @@ import pandas as pd
 import csv
 import os
 
-Watchlist_Path = "watchlists\Shorts.txt"
+Watchlist_Path = "watchlists/Shorts.txt"
 
 # === PLACEHOLDERS ===
 TELEGRAM_TOKEN = "7716430771:AAHqCZNoDACm3qlaue4G_hTJkyrxDRV9uxo"
