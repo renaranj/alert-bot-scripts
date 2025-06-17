@@ -346,7 +346,7 @@ def alarm_candle_patterns(symbol, candles_4h, candles_12h, candles_1d, priority=
     if messages:
        if debug:
           print(f"{symbol}\n")
-       message = "\n".join(messages)   
+       "\n".join(messages)   
        #send_telegram_alert(symbol, messages, priority)
        print(f"{messages}")
  
