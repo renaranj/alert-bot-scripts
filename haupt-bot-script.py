@@ -22,17 +22,18 @@ RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
  
-# For spot:
-def get_spot_symbols():
-    url = "https://api.mexc.com/api/v3/exchangeInfo"
-    res = requests.get(url).json()
-    symbols = [s["symbol"] for s in res["symbols"] if s["quoteAsset"] == "USDT" and s["status"] == "TRADING"]
-    return symbols
-# For perpetuals:    
-def get_perpetual_symbols():
-    url = "https://contract.mexc.com/api/v1/contract/detail"
-    res = requests.get(url).json()
-    return [s["symbol"] for s in res["data"] if s["quoteCoin"] == "USDT"]
+def get_allpairs_symbols(market_type = "spot"):
+    if market_type == "futures":
+        url = "https://contract.mexc.com/api/v1/contract/detail"
+        res = requests.get(url).json()
+        return [s["symbol"] for s in res["data"] if s["quoteCoin"] == "USDT"]
+    elif market_type == "spot":
+        url = "https://api.mexc.com/api/v3/exchangeInfo"
+        res = requests.get(url).json()
+        symbols = [s["symbol"] for s in res["symbols"] if s["quoteAsset"] == "USDT" and s["status"] == "1" and s["isSpotTradingAllowed"]]
+        return symbols
+    else:
+        print(f"Ungultiges Market Type: Getting all pairs symbols failed...")
         
 def load_watchlist_from_csv(file_path):
     symbols = []
@@ -454,7 +455,7 @@ def main():
         if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
            alarm_candle_patterns(watchlist_symbol, candles_4h, candles_12h, candles_1d, False, False)
         
-    allf_symbols = get_perpetual_symbols()
+    allf_symbols = get_allpairs_symbols("futures")
     for allf_symbol in allf_symbols:
         candles_4h = get_candles(allf_symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
