@@ -302,11 +302,11 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
     # Spinning Top
     elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
-    if messages:
-       if debug:
+    if debug:
           print(f"{symbol} (o {o:.4f}, h{h:.4f},l{l:.4f},c{c:.4f}) - (bd:{body_ratio:.2f},upp:{upper_ratio:.2f},low:{lower_ratio:.2f})")
+    if messages:
        "\n".join(messages)
-       print(f"{messages}")
+       send_telegram_alert(symbol, messages, priority)
 
 def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority=False,debug=False):
 
