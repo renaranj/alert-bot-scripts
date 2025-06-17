@@ -415,7 +415,7 @@ def main():
       candles_12h = get_12h_candles_from_4h(candles_4h)
       message = detect_candle_patterns(candles_12h, "12H",True)
       if message:
-       print(f"{message}")
+       print(f"{symbol}{message}")
     return
     
     open_spots = get_open_symbols("spot")
