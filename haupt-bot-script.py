@@ -440,7 +440,7 @@ def main():
         alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
         alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
         stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
-        if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
+        if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80): 
            alarm_candle_patterns(symbol, candles_4h, "4H", False, False)
            if hour in [0,12]:
              alarm_candle_patterns(symbol, candles_12h, "12H", False, False)
