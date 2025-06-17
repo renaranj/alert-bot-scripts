@@ -269,7 +269,7 @@ def calculate_ichimoku(candles):
 
     return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
     
-def detect_candle_patterns(candles, pattern_name):
+def detect_candle_patterns(candles, pattern_name,debug=False):
     if len(candles) < 3:
         return
     messages = []
@@ -304,6 +304,7 @@ def detect_candle_patterns(candles, pattern_name):
     body_ratio = body / total_range
     upper_ratio = upper_wick / total_range
     lower_ratio = lower_wick / total_range
+    
     # Hammer
     if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
         messages.append(f"🔨 Hammer detected on {pattern_name}")
@@ -313,7 +314,8 @@ def detect_candle_patterns(candles, pattern_name):
     # Spinning Top
     elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
-         
+    if debug:
+     messages = messages + f"\n(o {o}, h{h},l{l},c{c}) - (bd:{body_ratio},upp:{upper_ratio},low:{lower_ratio})\n"     
     return messages  
 
 def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority=False,debug=False):
@@ -346,20 +348,16 @@ def alarm_candle_patterns(symbol, candles_4h, candles_12h, candles_1d, priority=
     
     #if hour in [4,8,16,20,0]:
     candles_4h = candles_4h[:-1]
-    messages = detect_candle_patterns(candles_4h, "4H")
+    messages = detect_candle_patterns(candles_4h, "4H",debug)
     if hour in [0, 12]:
-        messages = detect_candle_patterns(candles_12h, "12H") + messages
+        messages = detect_candle_patterns(candles_12h, "12H",debug) + messages
     if hour == 0:
         candles_1d = candles_1d[:-1]
-        messages = detect_candle_patterns(candles_1d, "1D") + messages  
+        messages = detect_candle_patterns(candles_1d, "1D", debug) + messages  
     
     if messages:
        message = "\n".join(messages)   
-       if debug:
-        print(f"{symbol}\n{messages}\n(o {o}, h{h},l{l},c{c}) - (bd:{body_ratio},upp:{upper_ratio},low:{lower_ratio})")
-        send_telegram_alert(symbol, messages, priority)
-       else : 
-        send_telegram_alert(symbol, messages, priority)
+       send_telegram_alert(symbol, messages, priority)
  
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=False):
     if len(candles) < 201:
@@ -423,7 +421,14 @@ def send_telegram_alert(symbol, message, priority):
 def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
-
+    
+    symbol =["T_USDT"]
+    for symbol in symbols:
+      candles_4h = get_candles(symbol, "futures",interval="4H",limit=601)
+      candles_12h = get_12h_candles_from_4h(candles_4h)
+      detect_candle_patterns(candles_12h, "12H",True)
+      return
+    
     open_spots = get_open_symbols("spot")
     #open_spots = []    
     for open_spot in open_spots:
@@ -461,8 +466,7 @@ def main():
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(allf_symbol,"futures",interval="1D")
         alarm_touch_ema_200(allf_symbol, candles_4h, candles_12h, candles_1d, True)
-    
-
+      
     #-----------BTCUSDT bearbeitung---------------------------------------------------#
     candles_4h = get_candles("BTCUSDT", "spot",interval="4H",limit=601)
     candles_12h = get_12h_candles_from_4h(candles_4h)
