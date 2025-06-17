@@ -422,7 +422,7 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     
-    symbol =["T_USDT"]
+    symbols =["T_USDT"]
     for symbol in symbols:
       candles_4h = get_candles(symbol, "futures",interval="4H",limit=601)
       candles_12h = get_12h_candles_from_4h(candles_4h)
