@@ -412,10 +412,10 @@ def main():
         #print(f"{open_spot}4H:{candles_4h[-6:]} 12H: {candles_12h[-2:]}")
         candles_1d = get_candles(symbol,"spot",interval="1D")     
         alarm_candle_patterns(symbol, candles_4h, "4H", True, False)
-           if hour in [0,12]:
+        if hour in [0,12]:
              alarm_candle_patterns(symbol, candles_12h, "12H", True, False)
-           if hour in [0]:
-             alarm_candle_patterns(symbol, candles_1d, "1D", True, False)
+        if hour in [0]:
+             alarm_candle_patterns(symbol, candles_1d, "1D", True, False)   
                 
     symbols = get_open_symbols("futures")
     #open_futures = []
@@ -424,9 +424,9 @@ def main():
         candles_12h = get_12h_candles_from_4h(candles_4h)
         candles_1d = get_candles(symbol,"futures",interval="1D")     
         alarm_candle_patterns(symbol, candles_4h, "4H", True, False)
-           if hour in [0,12]:
+        if hour in [0,12]:
              alarm_candle_patterns(symbol, candles_12h, "12H", True, False)
-           if hour in [0]:
+        if hour in [0]:
              alarm_candle_patterns(symbol, candles_1d, "1D", True, False)
         
     symbols = load_watchlist_from_csv(Watchlist_Path)
