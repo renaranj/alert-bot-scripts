@@ -422,12 +422,12 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     
-    symbols =["T_USDT"]
+    symbols =["T_USDT","ASR_USDT","KAITO_USDT","SCA_USDT"]
     for symbol in symbols:
       candles_4h = get_candles(symbol, "futures",interval="4H",limit=601)
       candles_12h = get_12h_candles_from_4h(candles_4h)
       detect_candle_patterns(candles_12h, "12H",True)
-      return
+    return
     
     open_spots = get_open_symbols("spot")
     #open_spots = []    
