@@ -305,7 +305,8 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
     if messages:
        if debug:
           print(f"{symbol} (o {o:.4f}, h{h:.4f},l{l:.4f},c{c:.4f}) - (bd:{body_ratio:.2f},upp:{upper_ratio:.2f},low:{lower_ratio:.2f})")
-       print(f"{"\n".join(messages)}")
+       "\n".join(messages)
+       print(f"{messages}")
 
 def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority=False,debug=False):
 
