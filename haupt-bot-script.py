@@ -410,14 +410,13 @@ def main():
     hour, minute = now.hour, now.minute
     
     #symbols =["T_USDT","ASR_USDT","KAITO_USDT","SCA_USDT"]
-    symbols = get_allpairs_symbols("futures")
+    symbols = []
     for symbol in symbols:
       candles_4h = get_candles(symbol, "futures",interval="4H",limit=601)
       candles_12h = get_12h_candles_from_4h(candles_4h)
       message = detect_candle_patterns(candles_12h, "12H",True)
       if message:
        print(f"{symbol}{message}")
-    return
     
     open_spots = get_open_symbols("spot")
     #open_spots = []    
@@ -448,7 +447,7 @@ def main():
         alarm_ichimoku_crosses(watchlist_symbol, candles_1d, '1D', False, True)
         stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
         if stoch_rsiK and (stoch_rsiK < 20 or stoch_rsiK > 80): 
-           alarm_candle_patterns(watchlist_symbol, candles_4h, candles_12h, candles_1d, False, False)
+           alarm_candle_patterns(watchlist_symbol, candles_4h, candles_12h, candles_1d, False, True)
         
     allf_symbols = get_allpairs_symbols("futures")
     for allf_symbol in allf_symbols:
