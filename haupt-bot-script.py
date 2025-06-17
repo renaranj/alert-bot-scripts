@@ -426,7 +426,9 @@ def main():
     for symbol in symbols:
       candles_4h = get_candles(symbol, "futures",interval="4H",limit=601)
       candles_12h = get_12h_candles_from_4h(candles_4h)
-      detect_candle_patterns(candles_12h, "12H",True)
+      message = detect_candle_patterns(candles_12h, "12H",True)
+      if message:
+       print(f"{message}")
     return
     
     open_spots = get_open_symbols("spot")
