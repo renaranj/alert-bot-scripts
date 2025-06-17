@@ -294,7 +294,8 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
     lower_ratio = lower_wick / total_range
     
     # Hammer
-    if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
+    #if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
+    if lower_ratio > 0.5 and body_ratio < 0.3:
         messages.append(f"🔨 Hammer detected on {pattern_name}")
     # Inverted Hammer
     elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
