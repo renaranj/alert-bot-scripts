@@ -147,52 +147,39 @@ def get_candles(symbol, market_type, interval, limit= EMA_LONG_PERIOD + 1):
     print("Invalid market_type. Use 'spot' or 'futures'.")
     return []
         
-def get_12h_candles_from_4h(candles_4h):
-    if len(candles_4h) < 4:
-        return []
+from datetime import datetime
 
-    # Remove most recent (potentially forming) candle
+def get_12h_candles_from_4h(candles_4h):
+    # Remove the last candle (potentially incomplete)
     closed_candles = candles_4h[:-1]
     if len(closed_candles) < 3:
         return []
 
-    # Determine how many candles to remove based on the second candle's hour
-    timestamp = int(closed_candles[1][0])
-    if timestamp > 9999999999:
-        timestamp = timestamp // 1000
-    hour = datetime.utcfromtimestamp(timestamp).hour
-
-    # Custom logic based on your rules
-    remove_map = {
-        0: 1,
-        4: 2,
-        8: 0,
-        12: 1,
-        16: 2,
-        20: 0
-    }
-
-    remove_count = remove_map.get(hour, None)
-    if remove_count is None or len(closed_candles) <= remove_count:
-        return []
-
-    aligned_candles = closed_candles[remove_count:]
-
-    # Build 12H candles from 3x 4H groups
     candles_12h = []
-    for i in range(0, len(aligned_candles) - 2, 3):
-        group = aligned_candles[i:i + 3]
-        if len(group) != 3:
-            continue
+    i = 0
 
-        t = group[0][0]
-        o = float(group[0][1])
-        h = max(float(c[2]) for c in group)
-        l = min(float(c[3]) for c in group)
-        c = float(group[2][4])
-        v = sum(float(c[5]) for c in group)
-        #print(f"({t},{o},{h},{l},{c},{v})")
-        candles_12h.append((t, o, h, l, c, v))
+    while i <= len(closed_candles) - 3:
+        group = closed_candles[i:i + 3]
+        ts0 = int(group[0][0])
+        dt0 = datetime.utcfromtimestamp(ts0 // 1000 if ts0 > 9999999999 else ts0)
+
+        expected_hours = {
+            0: [0, 4, 8],
+            12: [12, 16, 20]
+        }
+
+        group_hours = [datetime.utcfromtimestamp(int(c[0]) // 1000 if int(c[0]) > 9999999999 else int(c[0])).hour for c in group]
+
+        if group_hours == expected_hours.get(dt0.hour, []):
+            o = float(group[0][1])
+            h = max(float(c[2]) for c in group)
+            l = min(float(c[3]) for c in group)
+            c_ = float(group[2][4])
+            v = sum(float(c[5]) for c in group)
+            candles_12h.append((ts0, o, h, l, c_, v))
+            i += 3  # Skip the 3 used
+        else:
+            i += 1  # Try next alignment
 
     return candles_12h
 
