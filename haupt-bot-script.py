@@ -551,7 +551,7 @@ def main():
                          func(symbol, candles, input, True)
                      elif func_name == "price_change":
                          candles = get_candles(symbol, "15m", limit=601)
-                         func(symbol, candles, input, True)
+                         func(symbol, candles, float(input), True)
                      elif func_name == "touch_ema200":
                          candles_15m = get_candles(symbol,"15m",limit=3)
                          candles_4h = get_candles(symbol,"4h",limit=601)
@@ -563,7 +563,7 @@ def main():
                          func(symbol, candles, input, True)
                      elif func_name == "price":
                          candles = get_candles(symbol, input, limit=601)
-                         func(symbol, candles, input, True)
+                         func(symbol, candles, float(input), True)
                      else:
                          print(f"[WARN] No logic implemented for: {func_name}")
         else:
