@@ -1,0 +1,6 @@
+executions = [
+    ("AZERO_USDT", {
+        "price": 0.03199,
+        "price_change": 20,
+    }),
+]
