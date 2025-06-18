@@ -523,7 +523,7 @@ def main():
              alarm_candle_patterns("BTCUSDT", candles_1d, "1D", True, False)
             
         #elif now.minute in [15, 16, 17, 30, 31, 32, 45, 46, 47]:
-        elif now.minute > 6:
+        elif now.minute > 3:
              executions = load_config()
              if not executions:
                  print("No execution rules found.")
