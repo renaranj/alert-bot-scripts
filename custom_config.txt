@@ -1,17 +1,6 @@
 executions = [
-    ("ZRCUSDT", {
-        "price": 0.089,
-        "price_change": 30,
-        "candle_patterns": "15m"
-    }),
-    ("ETHUSDT", {
-        "price_change": 30
-    }),
-    ("SOLUSDT", {
-        "ichimoku_crosses": "15m"
-    }),
-    ("AVAXUSDT", {
-        "price_change": 30,
-        "touch_ema200": "15m"
+    ("AZERO_USDT", {
+        "price": 0.03199,
+        "price_change": 20,
     }),
 ]
