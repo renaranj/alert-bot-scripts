@@ -105,23 +105,9 @@ def get_open_symbols(market_type="spot"):
     print("Invalid market_type. Use 'spot' or 'futures'.")
     return []
 
-def get_candles(symbol, market_type, interval, limit= EMA_LONG_PERIOD + 1):
- if market_type == "spot":
-    interval = "1d" if interval == "1D" else "4h"
-    url = f"https://api.mexc.com/api/v3/klines"
-    params = {'symbol': symbol, 'interval': interval, 'limit': limit}
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        print(f"Failed to fetch spot candles for {symbol}: {response.text}")
-        return []
-    data = response.json()
-    candles = [
-        (int(item[0]), float(item[1]), float(item[2]), float(item[3]), float(item[4]), float(item[5]))
-        for item in data
-    ]
-    return candles        
- elif market_type == "futures":
-    interval = "Day1" if interval == "1D" else "Hour4"
+def get_candles(symbol, interval, limit= EMA_LONG_PERIOD + 1):
+ if symbol.endswith("_USDT"):
+    interval = {"1D": "Day1", "4H": "Hour4"}.get(interval, interval)
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
     params = {'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
@@ -142,13 +128,22 @@ def get_candles(symbol, market_type, interval, limit= EMA_LONG_PERIOD + 1):
         data['close'],
         data['vol']
     ))
-    return candles
+    return candles           
  else:
-    print("Invalid market_type. Use 'spot' or 'futures'.")
-    return []
+    interval = {"1D": "1d", "4H": "4h"}.get(interval, interval)
+    url = f"https://api.mexc.com/api/v3/klines"
+    params = {'symbol': symbol, 'interval': interval, 'limit': limit}
+    response = requests.get(url, params=params)
+    if response.status_code != 200:
+        print(f"Failed to fetch spot candles for {symbol}: {response.text}")
+        return []
+    data = response.json()
+    candles = [
+        (int(item[0]), float(item[1]), float(item[2]), float(item[3]), float(item[4]), float(item[5]))
+        for item in data
+    ]
+    return candles
         
-from datetime import datetime
-
 def get_12h_candles_from_4h(candles_4h):
     # Remove the last candle (potentially incomplete)
     closed_candles = candles_4h[:-1]
@@ -397,18 +392,23 @@ def main():
     now = datetime.now(timezone.utc)
     hour, minute = now.hour, now.minute
     
-    #symbols =["USELESS_USDT", "ALT_USDT","BULLA_USDT","KAIA_USDT","RIZ_USDT", "VELAAI_USDT", "FLM_USDT"]
-    symbols = []
+    symbols =["T_USDT","ACEUSDT", "BSW_USDT","ASRUSDT","MEMEFI_USDT"]
+    #symbols = []
     for symbol in symbols:
-      candles_4h = get_candles(symbol, "futures",interval="4H",limit=601)
+      candles_4h = get_candles(symbol,interval="4H",limit=601)
       candles_12h = get_12h_candles_from_4h(candles_4h)
-      alarm_candle_patterns(symbol, candles_12h, "12H",True,True)
+      candles_1d = get_candles(symbol,interval="1D")    
+      alarm_candle_patterns(symbol, candles_4h, "4H", False, False)
+      alarm_candle_patterns(symbol, candles_12h, "12H",False,False)
+      alarm_candle_patterns(symbol, candles_1d, "1D", False, False) 
+    return
  
     symbols = get_open_symbols("spot")
     #open_spots = []    
     for symbol in symbols:
-        candles_4h = get_candles(symbol, "spot",interval="4H",limit=601)
+        candles_4h = get_candles(symbol, "futures",interval="4H",limit=601)
         candles_12h = get_12h_candles_from_4h(candles_4h)
+        candles_1d = get_candles(symbol,"futures",interval="1D")     
         #print(f"{open_spot}4H:{candles_4h[-6:]} 12H: {candles_12h[-2:]}")
         candles_1d = get_candles(symbol,"spot",interval="1D")     
         alarm_candle_patterns(symbol, candles_4h, "4H", True, False)
@@ -440,8 +440,7 @@ def main():
         alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
         alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
         stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
-        if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80): 
-           alarm_candle_patterns(symbol, candles_4h, "4H", False, False)
+        if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
            if hour in [0,12]:
              alarm_candle_patterns(symbol, candles_12h, "12H", False, False)
            if hour in [0]:
