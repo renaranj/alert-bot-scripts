@@ -550,7 +550,7 @@ def main():
                          candles = get_candles(symbol, input, limit=601)
                          func(symbol, candles, input, True)
                      elif func_name == "price_change":
-                         candles = get_candles(symbol, input, limit=601)
+                         candles = get_candles(symbol, "15m", limit=601)
                          func(symbol, candles, input, True)
                      elif func_name == "touch_ema200":
                          candles_15m = get_candles(symbol,"15m",limit=3)
