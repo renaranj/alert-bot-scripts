@@ -22,15 +22,6 @@ RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
 
-FUNC_MAP = {
-    "price_change": alarm_price_change,
-    "candle_patterns": alarm_candle_patterns,
-    "touch_ema200": alarm_touch_ema_200,
-    "ichimoku_crosses": alarm_ichimoku_crosses,
-    "price": alarm_price,
-    # Add more functions as needed
-}
-
 def load_config():
     CONFIG_URL = "https://raw.githubusercontent.com/renaranj/alert-bot-scripts/refs/heads/main/custom_config.txt"
     try:
@@ -536,7 +527,16 @@ def main():
              if not executions:
                  print("No execution rules found.")
                  return
-         
+
+             FUNC_MAP = {
+                    "price_change": alarm_price_change,
+                    "candle_patterns": alarm_candle_patterns,
+                    "touch_ema200": alarm_touch_ema_200,
+                    "ichimoku_crosses": alarm_ichimoku_crosses,
+                    "price": alarm_price,
+                    # Add more functions as needed
+             }
+
              for symbol, functions_dict in executions:
                  for func_name, input in functions_dict.items():
                      func = FUNC_MAP.get(func_name)
