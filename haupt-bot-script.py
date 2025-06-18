@@ -530,8 +530,8 @@ def main():
                     "price_change": alarm_price_change,
                     "candle_patterns": alarm_candle_patterns,
                     "touch_ema200": alarm_touch_ema_200,
-                    "ichimoku_crosses": alarm_ichimoku_crosses,
-                    "price": alarm_price,
+                    "ichimoku": alarm_ichimoku_crosses,
+                    "price_alert": alarm_price,
                     # Add more functions as needed
              }
 
