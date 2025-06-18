@@ -465,8 +465,6 @@ def main():
                candles_4h = get_candles(symbol,"4h",limit=601)
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
-               #print(f"{open_spot}4H:{candles_4h[-6:]} 12H: {candles_12h[-2:]}")
-               candles_1d = get_candles(symbol,"spot",interval="1D")
                alarm_price_change(symbol, candles_4h, 20, True)
                alarm_candle_patterns(symbol, candles_4h, "4H", True)
                if hour in [0,12]:
@@ -548,6 +546,7 @@ def main():
                      if func_name == "candle_patterns":
                          candles = get_candles(symbol, input, limit=601)
                          func(symbol, candles, input, True)
+                         print(f"{func} -> {input}")
                      elif func_name == "price_change":
                          candles = get_candles(symbol, "15m", limit=601)
                          func(symbol, candles, float(input), True)
