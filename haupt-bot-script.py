@@ -419,8 +419,7 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
        messages = "\n".join(messages)
        if debug :
         print(f"[{symbol}]\n{messages}\nichimoku ({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({senkou_a.iloc[-27]},{senkou_a.iloc[-27]}),({senkou_a.iloc[-26]},{senkou_a.iloc[-26]})")
-       else :
-        send_telegram_alert(symbol, messages, priority)
+       send_telegram_alert(symbol, messages, priority)
                        
 def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
@@ -508,6 +507,8 @@ def main():
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
                alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, True)
+               alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
+               alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
              
            #-----------BTCUSDT bearbeitung---------------------------------------------------#
            candles_4h = get_candles("BTCUSDT","4h",limit=601)
