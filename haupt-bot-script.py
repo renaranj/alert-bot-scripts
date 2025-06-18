@@ -23,11 +23,11 @@ RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
 
 FUNC_MAP = {
-    "alarm_price_change": price_change,
-    "alarm_candle_patterns": candle_patterns,
-    "alarm_touch_ema_200": touch_ema200,
-    "alarm_ichimoku_crosses": ichimoku_crosses,
-    "alarm_price": price,
+    "price_change": alarm_price_change,
+    "candle_patterns": alarm_candle_patterns,
+    "touch_ema200": alarm_touch_ema_200,
+    "ichimoku_crosses": alarm_ichimoku_crosses,
+    "price": alarm_price,
     # Add more functions as needed
 }
 
