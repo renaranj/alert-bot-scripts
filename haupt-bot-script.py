@@ -129,7 +129,7 @@ def get_candles(symbol, interval, limit= EMA_LONG_PERIOD + 1):
         "1W": "Week1",
         "1M": "Month1",
     }
-    interval = futures_interval_map.get(interval, interval)
+    interval = futures_interval_map.get(interval)
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
     params = {'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
@@ -152,7 +152,6 @@ def get_candles(symbol, interval, limit= EMA_LONG_PERIOD + 1):
     ))
     return candles           
  else:
-    interval = {"1D": "1d", "4H": "4h"}.get(interval, interval)
     url = f"https://api.mexc.com/api/v3/klines"
     params = {'symbol': symbol, 'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
