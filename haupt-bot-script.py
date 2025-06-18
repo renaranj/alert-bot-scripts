@@ -557,12 +557,12 @@ def main():
                          candles_4h = get_candles(symbol,"4h",limit=601)
                          candles_12h = get_12h_candles_from_4h(candles_4h)
                          candles_1d = get_candles(symbol,"1d")
-                         func(symbol, candles_15min, candles_12h, candles_1d, True)
+                         func(symbol, candles_15m, candles_12h, candles_1d, True)
                      elif func_name == "ichimoku_crosses":
                          candles = get_candles(symbol, input, limit=601)
                          func(symbol, candles, input, True)
                      elif func_name == "price":
-                         candles = get_candles(symbol, input, limit=601)
+                         candles = get_candles(symbol, "15min", limit=601)
                          func(symbol, candles, float(input), True)
                      else:
                          print(f"[WARN] No logic implemented for: {func_name}")
