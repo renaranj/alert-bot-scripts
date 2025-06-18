@@ -21,7 +21,29 @@ PRICE_CHANGE_THRESHOLD = 10 # in percent
 RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
- 
+
+FUNC_MAP = {
+    "alarm_price_change": price_change,
+    "alarm_candle_patterns": candle_patterns,
+    "alarm_touch_ema_200": touch_ema200,
+    "alarm_ichimoku_crosses": ichimoku_crosses,
+    "alarm_price": price,
+    # Add more functions as needed
+}
+
+def load_config():
+    CONFIG_URL = "https://raw.githubusercontent.com/renaranj/alert-bot-scripts/refs/heads/main/custom_config.txt"
+    try:
+        r = requests.get(CONFIG_URL)
+        r.raise_for_status()
+        env = {}
+        exec(r.text, {}, env)
+        executions = env.get("executions", [])
+        return executions
+    except Exception as e:
+        print("Error loading config:", e)
+        return []
+
 def get_allpairs_symbols(market_type = "spot"):
     if market_type == "futures":
         url = "https://contract.mexc.com/api/v1/contract/detail"
@@ -107,7 +129,16 @@ def get_open_symbols(market_type="spot"):
 
 def get_candles(symbol, interval, limit= EMA_LONG_PERIOD + 1):
  if symbol.endswith("_USDT"):
-    interval = {"1D": "Day1", "4H": "Hour4"}.get(interval, interval)
+    futures_interval_map = {
+        "15m": "Min15",
+        "30m": "Min30",
+        "1h": "Hour1",
+        "4h": "Hour4",
+        "1d": "Day1",
+        "1W": "Week1",
+        "1M": "Month1",
+    }
+    interval = futures_interval_map.get(interval, interval)
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
     params = {'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
@@ -251,6 +282,21 @@ def calculate_ichimoku(candles):
 
     return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
 
+def alarm_price(symbol,candles,price, priority=False, debug=False):
+    if len(candles) < 2:
+        return
+
+    t, o, h, l, c, v = candles[-1]
+    h, l = float(h), float(l)
+
+    if l > price < h:
+        if "_" in symbol:
+            symbol = symbol.replace("_USDT", "USDT.P")
+        message = f"🚨 [{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}) touched price:{price:.4f}\n"
+        if debug:
+            print(message)
+        send_telegram_alert(symbol, message, priority)
+     
 def alarm_price_change(symbol, candles, change_threshold=10, priority=False, debug=False):
     if len(candles) < 2:
         return
@@ -407,82 +453,120 @@ def send_telegram_alert(symbol, message, priority):
         print(f"Error sending Telegram alert: {e}")
 
 def main():
-    now = datetime.now(timezone.utc)
-    hour, minute = now.hour, now.minute
-    
-    symbols =["PENDLE_USDT","CAKE_USDT"]
-    #symbols = []
-    for symbol in symbols:
-      candles_4h = get_candles(symbol,interval="4H",limit=601)
-      candles_12h = get_12h_candles_from_4h(candles_4h)
-      candles_1d = get_candles(symbol,interval="1D")
-      alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d)
-      alarm_candle_patterns(symbol, candles_4h, "4H", False, True)
-      alarm_candle_patterns(symbol, candles_12h, "12H",False, True)
-      alarm_candle_patterns(symbol, candles_1d, "1D", False, True) 
-    #return
- 
-    symbols = get_open_symbols("spot")
-    #open_spots = []    
-    for symbol in symbols:
-        candles_4h = get_candles(symbol,interval="4H",limit=601)
-        candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(symbol,interval="1D") 
-        #print(f"{open_spot}4H:{candles_4h[-6:]} 12H: {candles_12h[-2:]}")
-        candles_1d = get_candles(symbol,"spot",interval="1D")
-        alarm_price_change(symbol, candles_4h, 20, True)
-        alarm_candle_patterns(symbol, candles_4h, "4H", True)
-        if hour in [0,12]:
-             alarm_candle_patterns(symbol, candles_12h, "12H", True)
-        if hour in [0]:
-             alarm_candle_patterns(symbol, candles_1d, "1D", True)   
-                
-    symbols = get_open_symbols("futures")
-    #open_futures = []
-    for symbol in symbols:
-        candles_4h = get_candles(symbol,interval="4H",limit=601)
-        candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(symbol,interval="1D")
-        alarm_price_change(symbol, candles_4h, -20, True)
-        alarm_candle_patterns(symbol, candles_4h, "4H", True)
-        if hour in [0,12]:
-             alarm_candle_patterns(symbol, candles_12h, "12H", True)
-        if hour in [0]:
-             alarm_candle_patterns(symbol, candles_1d, "1D", True)
+        now = datetime.now(timezone.utc)
+        hour, minute = now.hour, now.minute
+
+        if hour in [0,4,8,12,16,20] and now.minute in [1,2,3,4,5]:
+           #symbols =["PENDLE_USDT","CAKE_USDT"]
+           symbols = []
+           for symbol in symbols:
+             candles_4h = get_candles(symbol,"4h",limit=601)
+             candles_12h = get_12h_candles_from_4h(candles_4h)
+             candles_1d = get_candles(symbol,"1d")
+             alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d)
+             alarm_candle_patterns(symbol, candles_4h, "4H", False, True)
+             alarm_candle_patterns(symbol, candles_12h, "12H",False, True)
+             alarm_candle_patterns(symbol, candles_1d, "1D", False, True) 
+           #return
         
-    symbols = load_watchlist_from_csv(Watchlist_Path)
-    #watchlist_symbols = []
-    for symbol in symbols:
-        candles_4h = get_candles(symbol,interval="4H",limit=601)
-        candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(symbol,interval="1D") 
-        closes_4h = [float(c[4]) for c in candles_4h]
-        alarm_ichimoku_crosses(symbol, candles_4h, '4H', False, True)
-        alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
-        alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
-        stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
-        if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
+           symbols = get_open_symbols("spot")
+           #open_spots = []    
+           for symbol in symbols:
+               candles_4h = get_candles(symbol,"4h",limit=601)
+               candles_12h = get_12h_candles_from_4h(candles_4h)
+               candles_1d = get_candles(symbol,"1d")
+               #print(f"{open_spot}4H:{candles_4h[-6:]} 12H: {candles_12h[-2:]}")
+               candles_1d = get_candles(symbol,"spot",interval="1D")
+               alarm_price_change(symbol, candles_4h, 20, True)
+               alarm_candle_patterns(symbol, candles_4h, "4H", True)
+               if hour in [0,12]:
+                    alarm_candle_patterns(symbol, candles_12h, "12H", True)
+               if hour in [0]:
+                    alarm_candle_patterns(symbol, candles_1d, "1D", True)   
+                       
+           symbols = get_open_symbols("futures")
+           #open_futures = []
+           for symbol in symbols:
+               candles_4h = get_candles(symbol,"4h",limit=601)
+               candles_12h = get_12h_candles_from_4h(candles_4h)
+               candles_1d = get_candles(symbol,"1d")
+               alarm_price_change(symbol, candles_4h, -20, True)
+               alarm_candle_patterns(symbol, candles_4h, "4H", True)
+               if hour in [0,12]:
+                    alarm_candle_patterns(symbol, candles_12h, "12H", True)
+               if hour in [0]:
+                    alarm_candle_patterns(symbol, candles_1d, "1D", True)
+               
+           symbols = load_watchlist_from_csv(Watchlist_Path)
+           #watchlist_symbols = []
+           for symbol in symbols:
+               candles_4h = get_candles(symbol,"4h",limit=601)
+               candles_12h = get_12h_candles_from_4h(candles_4h)
+               candles_1d = get_candles(symbol,"1d")
+               closes_4h = [float(c[4]) for c in candles_4h]
+               alarm_ichimoku_crosses(symbol, candles_4h, '4H', False, True)
+               alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
+               alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
+               stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
+               if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
+                  if hour in [0,12]:
+                    alarm_candle_patterns(symbol, candles_12h, "12H", False)
+                  if hour in [0]:
+                    alarm_candle_patterns(symbol, candles_1d, "1D", False)
+               
+           symbols = get_allpairs_symbols("futures")
+           for symbol in symbols:
+               candles_4h = get_candles(symbol,"4h",limit=601)
+               candles_12h = get_12h_candles_from_4h(candles_4h)
+               candles_1d = get_candles(symbol,"1d")
+               alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, True)
+             
+           #-----------BTCUSDT bearbeitung---------------------------------------------------#
+           candles_4h = get_candles("BTCUSDT","4h",limit=601)
+           candles_12h = get_12h_candles_from_4h(candles_4h)
+           candles_1d = get_candles("BTCUSDT","1d")
+           alarm_candle_patterns("BTCUSDT", candles_4h, "4H", True, False)
            if hour in [0,12]:
-             alarm_candle_patterns(symbol, candles_12h, "12H", False)
+             alarm_candle_patterns("BTCUSDT", candles_12h, "12H", True, False)
            if hour in [0]:
-             alarm_candle_patterns(symbol, candles_1d, "1D", False)
+             alarm_candle_patterns("BTCUSDT", candles_1d, "1D", True, False)
+            
+        elif now.minute in [15, 16, 17, 30, 31, 32, 45, 46, 47]:
+             executions = load_config()
+             if not executions:
+                 print("No execution rules found.")
+                 return
+         
+             for symbol, functions_dict in executions:
+                 for func_name, input in functions_dict.items():
+                     func = FUNC_MAP.get(func_name)
+                     if not func:
+                         print(f"[WARN] Unknown function: {func_name}")
+                         continue
+  
+                     # Dispatch with appropriate arguments
+                     if func_name == "candle_patterns":
+                         candles = get_candles(symbol, input, limit=601)
+                         func(symbol, candles, input, True)
+                     elif func_name == "price_change":
+                         candles = get_candles(symbol, input, limit=601)
+                         func(symbol, candles_4h, input, True)
+                     elif func_name == "touch_ema200":
+                         candles_15m = get_candles(symbol,"15m",limit=3)
+                         candles_4h = get_candles(symbol,"4h",limit=601)
+                         candles_12h = get_12h_candles_from_4h(candles_4h)
+                         candles_1d = get_candles(symbol,"1d")
+                         func(symbol, candles_15min, candles_12h, candles_1d, True)
+                     elif func_name == "ichimoku_crosses":
+                         candles = get_candles(symbol, input, limit=601)
+                         func(symbol, candles, input, True)
+                     elif func_name == "price":
+                         candles = get_candles(symbol, input, limit=601)
+                         func(symbol, candles, input, True)
+                     else:
+                         print(f"[WARN] No logic implemented for: {func_name}")
+        else:
+              print(f"No matching time found to run....")
         
-    symbols = get_allpairs_symbols("futures")
-    for symbol in symbols:
-        candles_4h = get_candles(symbol,interval="4H",limit=601)
-        candles_12h = get_12h_candles_from_4h(candles_4h)
-        candles_1d = get_candles(symbol,interval="1D") 
-        alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, True)
-      
-    #-----------BTCUSDT bearbeitung---------------------------------------------------#
-    candles_4h = get_candles("BTCUSDT",interval="4H",limit=601)
-    candles_12h = get_12h_candles_from_4h(candles_4h)
-    candles_1d = get_candles("BTCUSDT",interval="1D")
-    alarm_candle_patterns("BTCUSDT", candles_4h, "4H", True, False)
-    if hour in [0,12]:
-      alarm_candle_patterns("BTCUSDT", candles_12h, "12H", True, False)
-    if hour in [0]:
-      alarm_candle_patterns("BTCUSDT", candles_1d, "1D", True, False)
-    
 if __name__ == "__main__":
     main()
