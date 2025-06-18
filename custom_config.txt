@@ -1,17 +1,17 @@
 executions = [
     ("ZRCUSDT", {
-        "alarm_price": "price",
-        "alarm_price_change": "15m",
-        "alarm_candle_patterns": "15m"
+        "price": 0,089,
+        "price_change": "15m",
+        "candle_patterns": "15m"
     }),
     ("ETHUSDT", {
-        "alarm_price_change": "1h"
+        "price_change": 30
     }),
     ("SOLUSDT", {
-        "alarm_ichimoku_crosses": "30m"
+        "ichimoku_crosses": "30m"
     }),
     ("AVAXUSDT", {
-        "alarm_price_change": "1h",
-        "alarm_touch_ema_200": "15m"
+        "price_change": 30,
+        "touch_ema200": "15m"
     }),
 ]
