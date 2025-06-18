@@ -1,0 +1,6 @@
+executions = [
+    ("ZRCUSDT", ("alarm_price_change", "alarm_candle_patterns"), "15m"),
+    ("ETHUSDT", ("alarm_price_change",), "1h"),
+    ("SOLUSDT", ("alarm_ichimoku_crosses",), "30m"),
+    ("AVAXUSDT", ("alarm_price_change", "alarm_touch_ema_200"), "15m"),
+]
