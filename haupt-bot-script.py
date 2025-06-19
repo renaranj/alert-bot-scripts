@@ -507,8 +507,10 @@ def main():
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
                alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, True)
-               alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
-               alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
+               if hour in [0,12]:
+                   alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
+               if hour in [0]:
+                   alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
              
            #-----------BTCUSDT bearbeitung---------------------------------------------------#
            candles_4h = get_candles("BTCUSDT","4h",limit=601)
