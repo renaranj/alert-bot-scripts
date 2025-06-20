@@ -1,12 +1,12 @@
 executions = [
     ("AZERO_USDT", {
-        "price": 0.03199,
+        "price_crosses": 0.03199,
         "price_change": 20,
     }),
      ("MIXIE_USDT", {
-        "ichimoku": "4h",
+        "ichimoku_crosses": "4h",
     }),
      ("RDO_USDT", {
-        "ichimoku": "4h",
+        "ichimoku_crosses": "4h",
     }),
 ]
