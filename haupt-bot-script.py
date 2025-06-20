@@ -279,7 +279,7 @@ def alarm_price_crosses(symbol,candles,price, priority=False, debug=False):
     t, o, h, l, c, v = candles[-2]
     h, l = float(h), float(l)
 
-    if l > float(price) < h:
+    if l < float(price) < h:
         if "_" in symbol:
             symbol = symbol.replace("_USDT", "USDT.P")
         message = f"crossed price:{price:.4f}\n"
