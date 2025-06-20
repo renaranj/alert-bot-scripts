@@ -445,7 +445,7 @@ def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
 
-        if hour in [0,4,8,12,16,20] and now.minute in [0,1,2,3]:
+        if hour in [0,4,8,12,16,20] and now.minute in [0]:
            #symbols =["PENDLE_USDT","CAKE_USDT"]
            symbols = []
            for symbol in symbols:
@@ -526,7 +526,8 @@ def main():
              alarm_candle_patterns("BTCUSDT", candles_1d, "1D", True, False)
             
         #elif now.minute in [15, 16, 17, 30, 31, 32, 45, 46, 47]:
-        elif now.minute > 3:
+        else:
+             print(f"executing load config...")
              executions = load_config()
              if not executions:
                  print("No execution rules found.")
@@ -570,8 +571,6 @@ def main():
                          func(symbol, candles, float(input), True)
                      else:
                          print(f"[WARN] No logic implemented for: {func_name}")
-        else:
-              print(f"No matching time found to run....")
         
 if __name__ == "__main__":
     main()
