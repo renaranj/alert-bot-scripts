@@ -272,7 +272,7 @@ def calculate_ichimoku(candles):
 
     return tenkan_sen, kijun_sen, senkou_span_a, senkou_span_b
 
-def alarm_price(symbol,candles,price, priority=False, debug=False):
+def alarm_price_crosses(symbol,candles,price, priority=False, debug=False):
     if len(candles) < 2:
         return
 
@@ -359,7 +359,7 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
        "\n".join(messages)
        send_telegram_alert(symbol, messages, priority)
 
-def alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, priority=False,debug=False):
+def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=False,debug=False):
 
     if len(candles_12h) < 200:
        return 
@@ -452,7 +452,7 @@ def main():
              candles_4h = get_candles(symbol,"4h",limit=601)
              candles_12h = get_12h_candles_from_4h(candles_4h)
              candles_1d = get_candles(symbol,"1d")
-             alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d)
+             alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
              alarm_candle_patterns(symbol, candles_4h, "4H", False, True)
              alarm_candle_patterns(symbol, candles_12h, "12H",False, True)
              alarm_candle_patterns(symbol, candles_1d, "1D", False, True) 
@@ -506,7 +506,7 @@ def main():
                candles_4h = get_candles(symbol,"4h",limit=601)
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
-               alarm_touch_ema_200(symbol, candles_4h, candles_12h, candles_1d, True)
+               alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, True)
                if hour in [0,12]:
                    alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
                if hour in [0]:
@@ -532,9 +532,9 @@ def main():
              FUNC_MAP = {
                     "price_change": alarm_price_change,
                     "candle_patterns": alarm_candle_patterns,
-                    "touch_ema200": alarm_touch_ema_200,
-                    "ichimoku": alarm_ichimoku_crosses,
-                    "price_alert": alarm_price,
+                    "ema200_crosses": alarm_ema200_crosses,
+                    "ichimoku_crosses": alarm_ichimoku_crosses,
+                    "price_crosses": alarm_price_crosses,
                     # Add more functions as needed
              }
 
