@@ -465,8 +465,8 @@ def main():
                closes_4h = [float(c[4]) for c in candles_4h]
                stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
                if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
-                  alarm_candle_patterns(symbol, candles_4h, "4H",True)
-               alarm_ichimoku_crosses(symbol, candles_4h, '4H', True, True)
+                  alarm_candle_patterns(symbol, candles_4h, "4H")
+               alarm_ichimoku_crosses(symbol, candles_4h, '4H',False, True)
                
            #Coins wo ich position behalte 
            symbols = get_open_symbols("spot")
