@@ -280,11 +280,9 @@ def alarm_price_crosses(symbol,candles,price, priority=False, debug=False):
     h, l = float(h), float(l)
 
     if l < float(price) < h:
-        if "_" in symbol:
-            symbol = symbol.replace("_USDT", "USDT.P")
         message = f"crossed price:{price:.4f}\n"
         if debug:
-            print(f"{symbol} Price alert:{price:.4f} - (h{h:.4f},l{l:.4f})\n")
+            print(f"{symbol} {message} - (h{h:.4f},l{l:.4f})\n")
         send_telegram_alert(symbol, message, priority)
      
 def alarm_price_change(symbol, candles, change_threshold=10, priority=False, debug=False):
