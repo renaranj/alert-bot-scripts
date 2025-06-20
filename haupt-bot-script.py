@@ -564,7 +564,7 @@ def main():
                          func(symbol, candles, input, True)
                      elif func_name == "price_crosses":
                          candles = get_candles(symbol, "15min", limit=601)
-                         func(symbol, candles, float(input), True,True)
+                         func(symbol, candles, float(input), True)
                      else:
                          print(f"[WARN] No logic implemented for: {func_name}")
         
