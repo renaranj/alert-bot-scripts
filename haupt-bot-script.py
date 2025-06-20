@@ -442,18 +442,39 @@ def main():
         hour, minute = now.hour, now.minute
 
         if hour in [0,4,8,12,16,20] and now.minute in [0]:
-           #symbols =["PENDLE_USDT","CAKE_USDT"]
-           symbols = []
+
+           symbols = get_allpairs_symbols("futures")
            for symbol in symbols:
-             candles_4h = get_candles(symbol,"4h",limit=601)
-             candles_12h = get_12h_candles_from_4h(candles_4h)
-             candles_1d = get_candles(symbol,"1d")
-             alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
-             alarm_candle_patterns(symbol, candles_4h, "4H", False, True)
-             alarm_candle_patterns(symbol, candles_12h, "12H",False, True)
-             alarm_candle_patterns(symbol, candles_1d, "1D", False, True) 
-           #return
-        
+               candles_4h = get_candles(symbol,"4h",limit=601)
+               candles_12h = get_12h_candles_from_4h(candles_4h)
+               candles_1d = get_candles(symbol,"1d")
+               alarm_price_change(symbol, candles_4h, 10, True, True)
+               alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, True, True)
+               if hour in [0,12]:
+                   alarm_ichimoku_crosses(symbol, candles_12h, '12H',False,True)
+               if hour in [0]:
+                   alarm_ichimoku_crosses(symbol, candles_1d, '1D',False,True)
+               stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
+               if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
+                  if hour in [0,12]:
+                    alarm_candle_patterns(symbol, candles_12h, "12H")
+                  if hour in [0]:
+                    alarm_candle_patterns(symbol, candles_1d, "1D")   
+             
+                
+           symbols = load_watchlist_from_csv(Watchlist_Path)
+           #watchlist_symbols = []
+           for symbol in symbols:
+               candles_4h = get_candles(symbol,"4h",limit=601)
+               candles_12h = get_12h_candles_from_4h(candles_4h)
+               candles_1d = get_candles(symbol,"1d")
+               closes_4h = [float(c[4]) for c in candles_4h]
+               alarm_ichimoku_crosses(symbol, candles_4h, '4H', True, True)
+               stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
+               if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
+                  alarm_candle_patterns(symbol, candles_4h, "4H",True)
+               
+            
            symbols = get_open_symbols("spot")
            #open_spots = []    
            for symbol in symbols:
@@ -479,39 +500,8 @@ def main():
                     alarm_candle_patterns(symbol, candles_12h, "12H", True)
                if hour in [0]:
                     alarm_candle_patterns(symbol, candles_1d, "1D", True)
-               
-           symbols = load_watchlist_from_csv(Watchlist_Path)
-           #watchlist_symbols = []
-           for symbol in symbols:
-               candles_4h = get_candles(symbol,"4h",limit=601)
-               candles_12h = get_12h_candles_from_4h(candles_4h)
-               candles_1d = get_candles(symbol,"1d")
-               closes_4h = [float(c[4]) for c in candles_4h]
-               alarm_ichimoku_crosses(symbol, candles_4h, '4H', True, True)
-               stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
-               if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
-                  alarm_candle_patterns(symbol, candles_4h, "4H",True)
-               
-               
-           symbols = get_allpairs_symbols("futures")
-           for symbol in symbols:
-               candles_4h = get_candles(symbol,"4h",limit=601)
-               candles_12h = get_12h_candles_from_4h(candles_4h)
-               candles_1d = get_candles(symbol,"1d")
-               alarm_price_change(symbol, candles_4h, 10, True, True)
-               alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, True, True)
-               if hour in [0,12]:
-                   alarm_ichimoku_crosses(symbol, candles_12h, '12H',False,True)
-               if hour in [0]:
-                   alarm_ichimoku_crosses(symbol, candles_1d, '1D',False,True)
-               stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
-               if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
-                  if hour in [0,12]:
-                    alarm_candle_patterns(symbol, candles_12h, "12H")
-                  if hour in [0]:
-                    alarm_candle_patterns(symbol, candles_1d, "1D")   
-             
-           #-----------BTCUSDT bearbeitung---------------------------------------------------#
+        
+            #-----------BTCUSDT bearbeitung---------------------------------------------------#
            candles_4h = get_candles("BTCUSDT","4h",limit=601)
            candles_12h = get_12h_candles_from_4h(candles_4h)
            candles_1d = get_candles("BTCUSDT","1d")
@@ -521,8 +511,18 @@ def main():
            if hour in [0]:
              alarm_candle_patterns("BTCUSDT", candles_1d, "1D", True, False)
             
-        #elif now.minute in [15, 16, 17, 30, 31, 32, 45, 46, 47]:
         else:
+             symbols = []
+             for symbol in symbols:
+                 candles_4h = get_candles(symbol,"4h",limit=601)
+                 candles_12h = get_12h_candles_from_4h(candles_4h)
+                 candles_1d = get_candles(symbol,"1d")
+                 alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
+                 alarm_candle_patterns(symbol, candles_4h, "4H", False, True)
+                 alarm_candle_patterns(symbol, candles_12h, "12H",False, True)
+                 alarm_candle_patterns(symbol, candles_1d, "1D", False, True) 
+               #return 
+            
              print(f"executing load config...")
              executions = load_config()
              if not executions:
