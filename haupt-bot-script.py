@@ -8,7 +8,8 @@ import pandas as pd
 import csv
 import os
 
-Watchlist_Path = "watchlists/Shorts.txt"
+Watchlist_Shorts = "watchlists/Shorts.txt"
+Watchlist_Longs = "watchlists/Longs.txt"
 
 # === PLACEHOLDERS ===
 TELEGRAM_TOKEN = "7716430771:AAHqCZNoDACm3qlaue4G_hTJkyrxDRV9uxo"
@@ -456,7 +457,7 @@ def main():
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, True, True)
 
             #Beobachtung my persönliches List coins
-           symbols = load_watchlist_from_csv(Watchlist_Path)
+           symbols = load_watchlist_from_csv(Watchlist_Shorts)
            for symbol in symbols:
                candles_4h = get_candles(symbol,"4h",limit=601)
                candles_12h = get_12h_candles_from_4h(candles_4h)
