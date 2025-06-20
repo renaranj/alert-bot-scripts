@@ -492,14 +492,11 @@ def main():
                candles_1d = get_candles(symbol,"1d")
                closes_4h = [float(c[4]) for c in candles_4h]
                alarm_ichimoku_crosses(symbol, candles_4h, '4H', False, True)
-               alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
-               alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
-               stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
-               if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
-                  if hour in [0,12]:
-                    alarm_candle_patterns(symbol, candles_12h, "12H", False)
-                  if hour in [0]:
-                    alarm_candle_patterns(symbol, candles_1d, "1D", False)
+               if hour in [0,12]:
+                   alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
+               if hour in [0]:
+                   alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
+               
                
            symbols = get_allpairs_symbols("futures")
            for symbol in symbols:
@@ -508,9 +505,15 @@ def main():
                candles_1d = get_candles(symbol,"1d")
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, True)
                if hour in [0,12]:
-                   alarm_ichimoku_crosses(symbol, candles_12h, '12H', False, True)
-               if hour in [0]:
-                   alarm_ichimoku_crosses(symbol, candles_1d, '1D', False, True)
+                    alarm_candle_patterns(symbol, candles_12h, "12H", False)
+                  if hour in [0]:
+                    alarm_candle_patterns(symbol, candles_1d, "1D", False)
+               stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
+               if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
+                  if hour in [0,12]:
+                    alarm_candle_patterns(symbol, candles_12h, "12H", True)
+                  if hour in [0]:
+                    alarm_candle_patterns(symbol, candles_1d, "1D", True)   
              
            #-----------BTCUSDT bearbeitung---------------------------------------------------#
            candles_4h = get_candles("BTCUSDT","4h",limit=601)
@@ -553,7 +556,7 @@ def main():
                      elif func_name == "price_change":
                          candles = get_candles(symbol, "15m", limit=601)
                          func(symbol, candles, float(input), True)
-                     elif func_name == "touch_ema200":
+                     elif func_name == "ema200_crosses":
                          candles_15m = get_candles(symbol,"15m",limit=3)
                          candles_4h = get_candles(symbol,"4h",limit=601)
                          candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -562,7 +565,7 @@ def main():
                      elif func_name == "ichimoku_crosses":
                          candles = get_candles(symbol, input, limit=601)
                          func(symbol, candles, input, True)
-                     elif func_name == "price":
+                     elif func_name == "price_crosses":
                          candles = get_candles(symbol, "15min", limit=601)
                          func(symbol, candles, float(input), True)
                      else:
