@@ -276,15 +276,15 @@ def alarm_price_crosses(symbol,candles,price, priority=False, debug=False):
     if len(candles) < 2:
         return
 
-    t, o, h, l, c, v = candles[-1]
+    t, o, h, l, c, v = candles[-2]
     h, l = float(h), float(l)
 
-    if l > price < h:
+    if l > float(price) < h:
         if "_" in symbol:
             symbol = symbol.replace("_USDT", "USDT.P")
         message = f"🚨 [{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}) touched price:{price:.4f}\n"
         if debug:
-            print(message)
+            print(f"{symbol} Price alert:{price:.4f} - (h{h:.4f},l{l:.4f})\n")
         send_telegram_alert(symbol, message, priority)
      
 def alarm_price_change(symbol, candles, change_threshold=10, priority=False, debug=False):
@@ -302,7 +302,7 @@ def alarm_price_change(symbol, candles, change_threshold=10, priority=False, deb
             f"Change: {change_pct:.2f}%"
         )
         if debug:
-            print(message)
+            print(f"{symbol} c1:{closes[-2]:.4f}, c2:{closes[-3]:.4f} \n")
         send_telegram_alert(symbol, message, priority)
     
 def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=False):
@@ -353,9 +353,10 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
     # Spinning Top
     elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
         messages.append(f"🌀 Spinning Top on {pattern_name}")
-    if debug:
-          print(f"{symbol} (o {o:.4f}, h{h:.4f},l{l:.4f},c{c:.4f}) - (bd:{body_ratio:.2f},upp:{upper_ratio:.2f},low:{lower_ratio:.2f})")
+    
     if messages:
+       if debug:
+          print(f"{symbol} (o {o:.4f}, h{h:.4f},l{l:.4f},c{c:.4f}) - (bd:{body_ratio:.2f},upp:{upper_ratio:.2f},low:{lower_ratio:.2f})")
        "\n".join(messages)
        send_telegram_alert(symbol, messages, priority)
 
