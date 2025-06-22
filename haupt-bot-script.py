@@ -500,6 +500,7 @@ def main():
            candles_4h = get_candles("BTCUSDT","4h",limit=601)
            candles_12h = get_12h_candles_from_4h(candles_4h)
            candles_1d = get_candles("BTCUSDT","1d")
+           alarm_ema200_crosses("BTCUSDT", candles_4h, candles_12h, candles_1d, True, True)
            alarm_candle_patterns("BTCUSDT", candles_4h, "4H", True, False)
            if hour in [0,12]:
              alarm_candle_patterns("BTCUSDT", candles_12h, "12H", True, False)
