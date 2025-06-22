@@ -449,10 +449,10 @@ def main():
                candles_4h = get_candles(symbol,"4h",limit=601)
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
-               if hour in [0,12]:
-                   alarm_ichimoku_crosses(symbol, candles_12h, '12H',False,True)
                if hour in [0]:
                    alarm_ichimoku_crosses(symbol, candles_1d, '1D',False,True)
+               if hour in [0,12]:
+                   alarm_ichimoku_crosses(symbol, candles_12h, '12H',False,True) 
                alarm_price_change(symbol, candles_4h, 10, True, True)
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, True, True)
 
@@ -465,7 +465,10 @@ def main():
                closes_4h = [float(c[4]) for c in candles_4h]
                stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
                if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
-                  alarm_candle_patterns(symbol, candles_4h, "4H")
+                  if hour in [0,12]:
+                    alarm_candle_patterns(symbol, candles_12h, "12H", True)
+                  if hour in [0]:
+                    alarm_candle_patterns(symbol, candles_1d, "1D", True)   
                alarm_ichimoku_crosses(symbol, candles_4h, '4H',False, True)
                
            #Coins wo ich position behalte 
