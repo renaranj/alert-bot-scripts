@@ -377,46 +377,63 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         print(f"{symbol} ema:{ema_200_1d} h:{h},l:{l}")
     if l < ema_200_1d < h:
        send_telegram_alert(symbol, 'touched Ema200_1d', priority)
-
-
  
 def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=False):
     if len(candles) < 201:
         return ""
-    candles = candles if (tf_label == "12H") else candles[:-1]
+    
+    # Use latest candle for 12H, otherwise exclude it
+    candles = candles if tf_label == "12H" else candles[:-1]
     closes = [float(c[4]) for c in candles]
-    current_close = closes[-1]
+    prev_close = closes[-2]
+    curr_close = closes[-1]
 
     messages = []
 
+    # Calculate Ichimoku components
     tenkan, kijun, senkou_a, senkou_b = calculate_ichimoku(candles)
 
-    # Ichimoku Cloud boundaries
-    latest_senkou_a = senkou_a.iloc[-26] if len(senkou_a) >= 26 else None
-    latest_senkou_b = senkou_b.iloc[-26] if len(senkou_b) >= 26 else None
-    if latest_senkou_a is None or latest_senkou_b is None:
+    # Ensure Senkou spans are available
+    if len(senkou_a) < 27 or len(senkou_b) < 27:
         return ""
 
-    cloud_top = max(latest_senkou_a, latest_senkou_b)
-    cloud_bottom = min(latest_senkou_a, latest_senkou_b)
+    prev_senkou_a = senkou_a.iloc[-27]
+    prev_senkou_b = senkou_b.iloc[-27]
+    curr_senkou_a = senkou_a.iloc[-26]
+    curr_senkou_b = senkou_b.iloc[-26]
+
+    prev_top = max(prev_senkou_a, prev_senkou_b)
+    prev_bottom = min(prev_senkou_a, prev_senkou_b)
+    curr_top = max(curr_senkou_a, curr_senkou_b)
+    curr_bottom = min(curr_senkou_a, curr_senkou_b)
+
+    # ✅ Condition 1: Previous inside cloud, current outside
+    if prev_bottom <= prev_close <= prev_top and (curr_close < curr_bottom or curr_close > curr_top):
+        messages.append(f"📤 Price exited Ichimoku cloud on {tf_label}")
+
+    # ✅ Condition 2: Flip from above to below or vice versa
+    if (prev_close > prev_top and curr_close < curr_bottom) or (prev_close < prev_bottom and curr_close > curr_top):
+        messages.append(f"🔁 Price flipped sides across the cloud on {tf_label}")
 
     # Tenkan/Kijun Cross
     if tenkan.iloc[-2] < kijun.iloc[-2] and tenkan.iloc[-1] >= kijun.iloc[-1]:
-        if current_close > cloud_top:
+        if curr_close > curr_top:
             messages.append(f"🟢 Bullish Tenkan/Kijun cross above cloud on {tf_label}")
         else:
             messages.append(f"🟡 Bullish Tenkan/Kijun cross below/inside cloud on {tf_label}")
     elif tenkan.iloc[-2] > kijun.iloc[-2] and tenkan.iloc[-1] <= kijun.iloc[-1]:
-        if current_close < cloud_bottom:
+        if curr_close < curr_bottom:
             messages.append(f"🔴 Bearish Tenkan/Kijun cross below cloud on {tf_label}")
         else:
             messages.append(f"🟠 Bearish Tenkan/Kijun cross above/inside cloud on {tf_label}")
 
     if messages:
-       messages = "\n".join(messages)
-       if debug :
-        print(f"[{symbol}]\n{messages}\nichimoku ({tenkan.iloc[-1]},{kijun.iloc[-1]}), senk ({senkou_a.iloc[-27]},{senkou_a.iloc[-27]}),({senkou_a.iloc[-26]},{senkou_a.iloc[-26]})")
-       send_telegram_alert(symbol, messages, priority)
+        combined_msg = "\n".join(messages)
+        if debug:
+            print(f"[{symbol}]\n{messages}\n")
+            print(f"Ichimoku Cloud previous {prev_close:.4f}:({prev_top:.4f},{prev_bottom:.4f}), current {curr_close:.4f}: ({curr_top:.4f},{curr_bottom:.4f})\n")
+            print(f"Tenkan/Kijun previous:({tenkan.iloc[-2]:.4f},{kijun.iloc[-2]:.4f}), current:({tenkan.iloc[-1]:.4f},{kijun.iloc[-1]:.4f})\n")
+        send_telegram_alert(symbol, combined_msg, priority)
                        
 def send_telegram_alert(symbol, message, priority):
     if "_" in symbol:
@@ -442,17 +459,17 @@ def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
 
-        if hour in [0,4,8,12,16,20] and now.minute in [0]:
+        if hour in [0,4,8,12,16,20] and now.minute in [0,1,2]:
             #Beobachtung all pair futures
            symbols = get_allpairs_symbols("futures")
            for symbol in symbols:
                candles_4h = get_candles(symbol,"4h",limit=601)
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
-               if hour in [0]:
-                   alarm_ichimoku_crosses(symbol, candles_1d, '1D',False,True)
                if hour in [0,12]:
                    alarm_ichimoku_crosses(symbol, candles_12h, '12H',False,True) 
+               if hour in [0]:
+                   alarm_ichimoku_crosses(symbol, candles_1d, '1D',False,True)
                alarm_price_change(symbol, candles_4h, 10, True, True)
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, True, True)
 
@@ -511,16 +528,13 @@ def main():
              alarm_candle_patterns("BTCUSDT", candles_1d, "1D", True, False)
             
         else:
-             symbols = []
+             symbols = ["SXP_USDT","ALCH_USDT","DOLO_USDT","FLOCK_USDT","PORT3_USDT","SAROS_USDT"]
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=601)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d")
-                 alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
-                 alarm_candle_patterns(symbol, candles_4h, "4H", False, True)
-                 alarm_candle_patterns(symbol, candles_12h, "12H",False, True)
-                 alarm_candle_patterns(symbol, candles_1d, "1D", False, True) 
-               #return 
+                 alarm_ichimoku_crosses(symbol, candles_4h, '4H',False, True)
+               return 
             
              print(f"executing load config...")
              executions = load_config()
