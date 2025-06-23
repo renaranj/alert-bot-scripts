@@ -397,10 +397,10 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
     if len(senkou_a) < 27 or len(senkou_b) < 27:
         return ""
 
-    prev_senkou_a = senkou_a.iloc[-27]
-    prev_senkou_b = senkou_b.iloc[-27]
-    curr_senkou_a = senkou_a.iloc[-26]
-    curr_senkou_b = senkou_b.iloc[-26]
+    prev_senkou_a = senkou_a.iloc[-2]
+    prev_senkou_b = senkou_b.iloc[-2]
+    curr_senkou_a = senkou_a.iloc[-1]
+    curr_senkou_b = senkou_b.iloc[-1]
 
     prev_top = max(prev_senkou_a, prev_senkou_b)
     prev_bottom = min(prev_senkou_a, prev_senkou_b)
