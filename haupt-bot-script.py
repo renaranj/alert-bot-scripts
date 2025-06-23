@@ -459,7 +459,7 @@ def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
 
-        if hour in [0,4,8,12,16,20] and now.minute in [0,1,2]:
+        if hour in [0,4,8,12,16,20] and now.minute in [0,1,2,3,4,5]:
             #Beobachtung all pair futures
            symbols = get_allpairs_symbols("futures")
            for symbol in symbols:
