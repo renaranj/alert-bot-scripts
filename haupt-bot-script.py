@@ -313,7 +313,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         ema_12h = calculate_ema(closes_12h)
         prev_high, prev_low = float(candles_4h[-2][2]), float(candles_4h[-2][3])
 
-        if is_ema_in_candle_range(ema_4h, prev_high, prev_low):
+        if is_ema_in_candle_range(ema_12h, prev_high, prev_low):
             messages.append("📌 Touched EMA200 on 12H")
 
         if debug:
@@ -324,7 +324,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         closes_1d = [float(c[4]) for c in candles_1d[:-1]]
         ema_1d = calculate_ema(closes_1d)
 
-        if is_ema_in_candle_range(ema_4h, prev_high, prev_low):
+        if is_ema_in_candle_range(ema_1d, prev_high, prev_low):
             messages.append("📌 Touched EMA200 on 1D")
 
         if debug:
