@@ -307,38 +307,35 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
 
     messages = []
 
-    # 🔹 Check 12H EMA200 against current 4H candle
+    # Use previous full 4H candle for all comparisons
+    if len(candles_4h) < 2:
+        return
+    prev_high, prev_low = float(candles_4h[-2][2]), float(candles_4h[-2][3])
+
+    # 🔹 Check 12H EMA200
     if len(candles_12h) >= 200:
         closes_12h = [float(c[4]) for c in candles_12h]
         ema_12h = calculate_ema(closes_12h)
-        prev_high, prev_low = float(candles_4h[-2][2]), float(candles_4h[-2][3])
-
         if is_ema_in_candle_range(ema_12h, prev_high, prev_low):
             messages.append("📌 Touched EMA200 on 12H")
-
         if debug:
             print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H candle: H={prev_high}, L={prev_low}")
 
-    # 🔹 Check 1D EMA200 against current 4H candle
+    # 🔹 Check 1D EMA200
     if len(candles_1d) >= 201:
         closes_1d = [float(c[4]) for c in candles_1d[:-1]]
         ema_1d = calculate_ema(closes_1d)
-
         if is_ema_in_candle_range(ema_1d, prev_high, prev_low):
             messages.append("📌 Touched EMA200 on 1D")
-
         if debug:
             print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H candle: H={prev_high}, L={prev_low}")
 
-    # 🔹 New: Check if 4H EMA200 is inside full *previous* 4H candle
+    # 🔹 Check 4H EMA200 against previous 4H candle
     if len(candles_4h) >= 200:
         closes_4h = [float(c[4]) for c in candles_4h[:-1]]
         ema_4h = calculate_ema(closes_4h)
-        prev_high, prev_low = float(candles_4h[-2][2]), float(candles_4h[-2][3])
-
         if is_ema_in_candle_range(ema_4h, prev_high, prev_low):
             messages.append("📌 4H EMA200 inside previous full 4H candle")
-
         if debug:
             print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H candle: H={prev_high}, L={prev_low}")
 
