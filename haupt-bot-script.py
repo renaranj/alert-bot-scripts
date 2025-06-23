@@ -528,13 +528,14 @@ def main():
              alarm_candle_patterns("BTCUSDT", candles_1d, "1D", True, False)
             
         else:
-             symbols = ["SXP_USDT","ALCH_USDT","DOLO_USDT","FLOCK_USDT","PORT3_USDT","SAROS_USDT"]
+             #symbols = ["SXP_USDT","ALCH_USDT","DOLO_USDT","FLOCK_USDT","PORT3_USDT","SAROS_USDT"]
+             symbols = []
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=601)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d")
                  alarm_ichimoku_crosses(symbol, candles_4h, '4H',False, True)
-             return 
+             #return 
             
              print(f"executing load config...")
              executions = load_config()
