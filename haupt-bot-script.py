@@ -534,7 +534,7 @@ def main():
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d")
                  alarm_ichimoku_crosses(symbol, candles_4h, '4H',False, True)
-               return 
+             return 
             
              print(f"executing load config...")
              executions = load_config()
