@@ -565,12 +565,13 @@ def main():
             
         else:
              #symbols = ["MOODENG_USDT","WIF_USDT"]
-             symbols = []
+             symbols = ["IRISVIRTUAL_USDT","YBDBD_USDT"]
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=1054)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d",limit=350)
                  alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, False,True)
+                 alarm_candle_patterns(symbol, candles_12h, "12H",False,True)
                  #alarm_ichimoku_crosses(symbol, candles_4h, '4H',False,False)
              #return 
             
