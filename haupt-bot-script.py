@@ -479,8 +479,9 @@ def send_telegram_alert(symbol, message, priority=False):
 def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
+        ExecuteNow = True
 
-        if hour in [0,4,8,12,16,20] and now.minute in [0,1,2,3,4,5,23]:
+        if hour in [0,4,8,12,16,20,11] and now.minute in [0,1,2,3,4,5,28]:
            
            #-----------BTCUSDT bearbeitung---------------------------------------------------#
            candles_4h = get_candles("BTCUSDT","4h",limit=601)
