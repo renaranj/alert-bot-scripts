@@ -320,6 +320,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         if ema_12h is not None and is_ema_in_candle_range(ema_12h, prev_high, prev_low):
             messages.append("📌 Touched EMA200 on 12H")
             if debug:
+                print(f"Last 5 closes (12h): {closes_12h[-5:]}")
                 print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H candle: H={prev_high}, L={prev_low}")
 
     # 🔹 Check 1D EMA200
@@ -560,7 +561,6 @@ def main():
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=601)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
-                 print(f"Last 5 closes (12h): {closes_12h[-5:]}")
                  candles_1d = get_candles(symbol,"1d")
                  alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, False,True)
                  #alarm_ichimoku_crosses(symbol, candles_4h, '4H',False,False)
