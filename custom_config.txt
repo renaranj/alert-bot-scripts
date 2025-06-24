@@ -1,5 +1,5 @@
 executions = [
     ("WHITE_USDT", {
-        "stochRsi": True,
+        "stochRsi": 0,
     }),
 ]
