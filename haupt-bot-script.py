@@ -556,7 +556,7 @@ def main():
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
-             symbols = ["MOODENG_USDT"]
+             symbols = ["MOODENG_USDT","WIF_USDT"]
              #symbols = []
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=601)
