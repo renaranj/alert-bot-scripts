@@ -578,6 +578,7 @@ def main():
                     "ema200_crosses": alarm_ema200_crosses,
                     "ichimoku_crosses": alarm_ichimoku_crosses,
                     "price_crosses": alarm_price_crosses,
+                    "stochRsi": calculate_stoch_rsi,
                     # Add more functions as needed
              }
 
@@ -608,6 +609,14 @@ def main():
                      elif func_name == "price_crosses":
                          candles = get_candles(symbol, "15min", limit=601)
                          func(symbol, candles, float(input), True)
+                     elif func_name == "stochRsi":
+                         candles_4h = get_candles(symbol,"4h",limit=52)
+                         closes_4h = [float(c[4]) for c in candles_4h]
+                         stoch_rsiK, stoch_rsiD = func(closes_4h)
+                         if stoch_rsiK and stoch_rsiD and stoch_rsiK > 80 and stoch_rsiD > 80:
+                             send_telegram_alert(symbol, "stochRsi overbought")
+                         if stoch_rsiK and stoch_rsiD and stoch_rsiK < 20 and stoch_rsiD < 20:
+                             send_telegram_alert(symbol, "stochRsi oversold")
                      else:
                          print(f"[WARN] No logic implemented for: {func_name}")
         
