@@ -565,7 +565,7 @@ def main():
             
         else:
              #symbols = ["MOODENG_USDT","WIF_USDT"]
-             symbols = ["IRISVIRTUAL_USDT","YBDBD_USDT"]
+             symbols = []
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=1054)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
