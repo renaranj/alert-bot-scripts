@@ -303,6 +303,8 @@ def alarm_price_change(symbol, candles, change_threshold=10, priority=False, deb
     
 def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=False, debug=False):
     def is_ema_in_candle_range(ema, high, low):
+        if ema is None or high is None or low is None:
+            return False
         return low < ema < high
 
     messages = []
@@ -316,7 +318,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
     if len(candles_12h) >= 200:
         closes_12h = [float(c[4]) for c in candles_12h]
         ema_12h = calculate_ema(closes_12h)
-        if is_ema_in_candle_range(ema_12h, prev_high, prev_low):
+        if ema_12h is not None and is_ema_in_candle_range(ema_12h, prev_high, prev_low):
             messages.append("📌 Touched EMA200 on 12H")
             if debug:
                 print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H candle: H={prev_high}, L={prev_low}")
@@ -325,7 +327,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
     if len(candles_1d) >= 201:
         closes_1d = [float(c[4]) for c in candles_1d[:-1]]
         ema_1d = calculate_ema(closes_1d)
-        if is_ema_in_candle_range(ema_1d, prev_high, prev_low):
+        if ema_1d is not None and is_ema_in_candle_range(ema_1d, prev_high, prev_low):
             messages.append("📌 Touched EMA200 on 1D")
             if debug:
                 print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H candle: H={prev_high}, L={prev_low}")
@@ -479,8 +481,7 @@ def send_telegram_alert(symbol, message, priority=False):
 def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
-        hour, minute = 0,0
-        print(f"{now.hour},{now.minute}")
+        #hour, minute = 0,0
 
         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3]:
            
