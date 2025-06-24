@@ -560,6 +560,7 @@ def main():
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=601)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
+                 print(f"Last 5 closes (12h): {closes_12h[-5:]}")
                  candles_1d = get_candles(symbol,"1d")
                  alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, False,True)
                  #alarm_ichimoku_crosses(symbol, candles_4h, '4H',False,False)
