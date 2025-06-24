@@ -200,7 +200,7 @@ def get_12h_candles_from_4h(candles_4h):
 
     return candles_12h
 
-def calculate_ema(closes, period=250):
+def calculate_ema(closes, period=200):
     if len(closes) < period:
         return None
     return pd.Series(closes).ewm(span=period, adjust=False).mean().iloc[-1]
