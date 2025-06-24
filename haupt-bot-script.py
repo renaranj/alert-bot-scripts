@@ -613,9 +613,9 @@ def main():
                          candles_4h = get_candles(symbol,"4h",limit=52)
                          closes_4h = [float(c[4]) for c in candles_4h]
                          stoch_rsiK, stoch_rsiD = func(closes_4h)
-                         if input and stoch_rsiK and stoch_rsiD and stoch_rsiK > 80 and stoch_rsiD > 80:
+                         if input==1 and stoch_rsiK and stoch_rsiD and stoch_rsiK > 80 and stoch_rsiD > 80:
                              send_telegram_alert(symbol, "stochRsi overbought")
-                         if input and stoch_rsiK and stoch_rsiD and stoch_rsiK < 20 and stoch_rsiD < 20:
+                         if input==0 and stoch_rsiK and stoch_rsiD and stoch_rsiK < 20 and stoch_rsiD < 20:
                              send_telegram_alert(symbol, "stochRsi oversold")
                      else:
                          print(f"[WARN] No logic implemented for: {func_name}")
