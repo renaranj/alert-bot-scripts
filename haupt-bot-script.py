@@ -494,7 +494,7 @@ def main():
              alarm_candle_patterns("BTCUSDT", candles_1d, "1D", True)
            
             #bearbeitung meine Coins
-           send_telegram_alert("MX_USDT", "Bearbeitung meine Spot Werts",True)
+           send_telegram_alert("MX_USDT", "<-----Bearbeitung meine spots/futures----->")
            symbols = get_open_symbols("spot")
            #open_spots = []    
            for symbol in symbols:
@@ -523,7 +523,7 @@ def main():
                     alarm_candle_patterns(symbol, candles_1d, "1D", True)
            
             #Beobachtung my persönliches List coins
-           send_telegram_alert("MX_USDT", "Bearbeitung meine Watchlists",True)
+           send_telegram_alert("MX_USDT", "<-----Bearbeitung meine Watchlists----->")
            symbols = load_watchlist_from_csv(Watchlist_Shorts)
            for symbol in symbols:
                candles_4h = get_candles(symbol,"4h",limit=601)
@@ -539,7 +539,7 @@ def main():
                     alarm_candle_patterns(symbol, candles_1d, "1D")   
                
            #Beobachtung all pair futures
-           send_telegram_alert("MX_USDT", "Bearbeitung all pairs",True)
+           send_telegram_alert("MX_USDT", "<-----Bearbeitung Alls Pairs----->")
            symbols = get_allpairs_symbols("futures")
            for symbol in symbols:
                candles_4h = get_candles(symbol,"4h",limit=601)
@@ -549,8 +549,8 @@ def main():
                    alarm_ichimoku_crosses(symbol, candles_12h, '12H') 
                if hour in [0]:
                    alarm_ichimoku_crosses(symbol, candles_1d, '1D')
-               alarm_price_change(symbol, candles_4h, 10, True)
-               alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, True)
+               alarm_price_change(symbol, candles_4h, 10)
+               alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
              #symbols = ["HYPE_USDT","XPR_USDT","FARTCOIN_USDT","OBOL_USDT"]
