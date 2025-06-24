@@ -283,7 +283,7 @@ def alarm_price_crosses(symbol,candles,price, priority=False, debug=False):
     if l < float(price) < h:
         message = f"crossed price:{price:.4f}\n"
         if debug:
-            print(f"{symbol} {message} - (h{h:.4f},l{l:.4f})\n")
+            print(f"🔔{symbol} {message} - (h{h:.4f},l{l:.4f})\n")
         send_telegram_alert(symbol, message, priority)
      
 def alarm_price_change(symbol, candles, change_threshold=10, priority=False, debug=False):
@@ -298,7 +298,7 @@ def alarm_price_change(symbol, candles, change_threshold=10, priority=False, deb
             symbol = symbol.replace("_USDT", "USDT.P")
         message = f"Price Changed: {change_pct:.2f}%"
         if debug:
-            print(f"{symbol} Price Changed: {change_pct:.2f}% - c1:{closes[-2]:.4f}, c2:{closes[-3]:.4f} \n")
+            print(f"🔔{symbol} Price Changed: {change_pct:.2f}% - c1:{closes[-2]:.4f}, c2:{closes[-3]:.4f} \n")
         send_telegram_alert(symbol, message, priority)
     
 def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=False, debug=False):
@@ -343,7 +343,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
 
     # 🔔 Send alert if any
     if messages:
-        full_msg = f"🔔EMA Signals:\n" + "\n".join(messages)
+        full_msg = f"EMA Signals:\n" + "\n".join(messages)
         send_telegram_alert(symbol, full_msg, priority)
 
 def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=False):
