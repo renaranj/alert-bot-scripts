@@ -201,17 +201,17 @@ def get_12h_candles_from_4h(candles_4h):
 
     return candles_12h
 
-#def calculate_ema(closes, period=200):
- #   if len(closes) < period:
-  #      return None
-   # return pd.Series(closes).ewm(span=period, adjust=False).mean().iloc[-1]
-
 def calculate_ema(closes, period=200):
     if len(closes) < period:
         return None
-    df = pd.DataFrame({'close': closes})
-    ema = EMAIndicator(close=df['close'], window=period).ema_indicator()
-    return ema.iloc[-1]
+    return pd.Series(closes).ewm(span=period, adjust=False).mean().iloc[-1]
+
+#def calculate_ema(closes, period=200):
+ #   if len(closes) < period:
+  #      return None
+   # df = pd.DataFrame({'close': closes})
+    #ema = EMAIndicator(close=df['close'], window=period).ema_indicator()
+    #return ema.iloc[-1]
 
 def calculate_rsi(closes, period=14):
     if len(closes) < period + 1:
