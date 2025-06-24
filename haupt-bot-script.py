@@ -556,14 +556,14 @@ def main():
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
-             #symbols = ["HYPE_USDT","XPR_USDT","FARTCOIN_USDT","OBOL_USDT"]
+             symbols = ["CYBER_USDT","CVX_USDT","NEXO_USDT"]
              symbols = []
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=601)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d")
-                 alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, True,True)
-                 alarm_ichimoku_crosses(symbol, candles_4h, '4H',False,False)
+                 alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, False,True)
+                 #alarm_ichimoku_crosses(symbol, candles_4h, '4H',False,False)
              #return 
             
              print(f"executing load config...")
