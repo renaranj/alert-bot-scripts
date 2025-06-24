@@ -556,7 +556,8 @@ def main():
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
-             symbols = ["CYBER_USDT","CVX_USDT","NEXO_USDT"]
+             #symbols = ["CYBER_USDT","CVX_USDT","NEXO_USDT"]
+             symbols = get_allpairs_symbols("futures")
              #symbols = []
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=601)
