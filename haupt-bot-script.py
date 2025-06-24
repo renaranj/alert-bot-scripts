@@ -200,7 +200,7 @@ def get_12h_candles_from_4h(candles_4h):
 
     return candles_12h
 
-def calculate_ema(closes, period=200):
+def calculate_ema(closes, period=250):
     if len(closes) < period:
         return None
     return pd.Series(closes).ewm(span=period, adjust=False).mean().iloc[-1]
@@ -485,7 +485,7 @@ def main():
         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3]:
            
            #-----------BTCUSDT bearbeitung---------------------------------------------------#
-           candles_4h = get_candles("BTCUSDT","4h",limit=601)
+           candles_4h = get_candles("BTCUSDT","4h",limit=754)
            candles_12h = get_12h_candles_from_4h(candles_4h)
            candles_1d = get_candles("BTCUSDT","1d")
            alarm_ema200_crosses("BTCUSDT", candles_4h, candles_12h, candles_1d, True)
