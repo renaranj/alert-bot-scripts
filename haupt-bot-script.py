@@ -520,7 +520,7 @@ def send_telegram_alert(symbol, message, priority=False):
 def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
-        hour, minute = 0,0
+        hour, minute = 0,15
         ema_touch_state = load_ema_touch_state()
     
         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3,15,16,17]:
