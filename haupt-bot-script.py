@@ -339,13 +339,13 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
                 print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H candle: H={prev_high}, L={prev_low}")
 
     # 🔹 Check 4H EMA200 against previous 4H candle
-    if len(candles_4h) >= 200:
-        closes_4h = [float(c[4]) for c in candles_4h[:-1]]
-        ema_4h = calculate_ema(closes_4h)
-        if ema_4h is not None and is_ema_in_candle_range(ema_4h, prev_high, prev_low):
-            messages.append("📌 Touched EMA200 on 4H")
-        if ema_4h is not None and debug:
-                print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H candle: H={prev_high}, L={prev_low}")
+    #if len(candles_4h) >= 200:
+     #   closes_4h = [float(c[4]) for c in candles_4h[:-1]]
+      #  ema_4h = calculate_ema(closes_4h)
+       # if ema_4h is not None and is_ema_in_candle_range(ema_4h, prev_high, prev_low):
+        #    messages.append("📌 Touched EMA200 on 4H")
+        #if ema_4h is not None and debug:
+         #       print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H candle: H={prev_high}, L={prev_low}")
 
     # 🔔 Send alert if any
     if messages:
@@ -489,8 +489,9 @@ def main():
         hour, minute = now.hour, now.minute
         #hour, minute = 0,0
 
-        if hour in [0,4,8,12,16,20] and minute in [0,1,2,3]:
-           
+        if hour in [0,4,8,12,16,20] and minute in [0,1,2,3,15,16,17]:
+
+         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3]:
            #-----------BTCUSDT bearbeitung---------------------------------------------------#
            candles_4h = get_candles("BTCUSDT","4h",limit=754)
            candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -530,7 +531,8 @@ def main():
                     alarm_candle_patterns(symbol, candles_12h, "12H", True)
                if hour in [0]:
                     alarm_candle_patterns(symbol, candles_1d, "1D", True)
-           
+         
+         else:  
             #Beobachtung my persönliches List coins
            send_telegram_alert("MX_USDT", "<-----Bearbeitung meine Watchlists----->")
            symbols = load_watchlist_from_csv(Watchlist_Shorts)
