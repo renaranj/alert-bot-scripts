@@ -24,6 +24,8 @@ PRICE_CHANGE_THRESHOLD = 10 # in percent
 RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
+# Memory to track last EMA touch per symbol+TF
+ema_touch_state = {}
 TOUCH_STATE_FILE = "ema_touch_state.json"
 
 def load_ema_touch_state():
