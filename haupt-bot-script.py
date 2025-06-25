@@ -525,7 +525,7 @@ def send_telegram_alert(symbol, message, priority=False):
 def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
-        hour, minute = 1,15
+        #hour, minute = 1,15
             
         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3,15,16,17]:
 
