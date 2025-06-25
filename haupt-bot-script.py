@@ -288,7 +288,7 @@ def alarm_price_crosses(symbol,candles,price, priority=False, debug=False):
     h, l = float(h), float(l)
 
     if l < float(price) < h:
-        message = f"crossed price:{price:.4f}\n"
+        message = f"🔔crossed price:{price:.4f}\n"
         if debug:
             print(f"🔔{symbol} {message} - (h{h:.4f},l{l:.4f})\n")
         send_telegram_alert(symbol, message, priority)
@@ -301,9 +301,7 @@ def alarm_price_change(symbol, candles, change_threshold=10, priority=False, deb
     change_pct = ((closes[-2] - closes[-3]) / closes[-3]) * 100
 
     if (change_threshold > 0 and change_pct >= change_threshold) or (change_threshold < 0 and change_pct <= change_threshold):
-        if "_" in symbol:
-            symbol = symbol.replace("_USDT", "USDT.P")
-        message = f"Price Changed: {change_pct:.2f}%"
+        message = f"🔔Price Changed: {change_pct:.2f}%"
         if debug:
             print(f"🔔{symbol} Price Changed: {change_pct:.2f}% - c1:{closes[-2]:.4f}, c2:{closes[-3]:.4f} \n")
         send_telegram_alert(symbol, message, priority)
@@ -391,17 +389,17 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
     upper_ratio = upper_wick / total_range
     lower_ratio = lower_wick / total_range
     
+    # Spinning Top
+    if body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
+        messages.append(f"🌀 Spinning Top on {pattern_name}")
     # Hammer
     #if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
-    if lower_ratio > 0.5 and body_ratio < 0.3:
+    elif lower_ratio > 0.5 and body_ratio < 0.3:
         messages.append(f"🔨 Hammer detected on {pattern_name}")
     # Inverted Hammer
     #elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
     elif upper_ratio > 0.5 and body_ratio < 0.3:
         messages.append(f"🔻 Inverted Hammer on {pattern_name}")
-    # Spinning Top
-    elif body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
-        messages.append(f"🌀 Spinning Top on {pattern_name}")
     
     if messages:
        if debug:
