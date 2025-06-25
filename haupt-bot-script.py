@@ -387,7 +387,9 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
     if messages:
         full_msg = f"EMA Signals:\n" + "\n".join(messages)
         send_telegram_alert(symbol, full_msg, priority)
-
+    # 🧪 Save the updated state to disk
+    save_ema_touch_state(ema_touch_state)
+        
 def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=False):
     candles = candles[:-1] if pattern_name != "12H" else candles
     if len(candles) < 3:
@@ -664,9 +666,6 @@ def main():
                              send_telegram_alert(symbol, "stochRsi oversold")
                      else:
                          print(f"[WARN] No logic implemented for: {func_name}")
-         
-        # 🧪 Save the updated state to disk
-        save_ema_touch_state(ema_touch_state)
         
 if __name__ == "__main__":
     main()
