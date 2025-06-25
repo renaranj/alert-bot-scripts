@@ -342,9 +342,10 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         if touched and not ema_touch_state[state_key]["12h"]:
             messages.append("📌 Touched EMA200 on 12H")
         ema_touch_state[state_key]["12h"] = bool(touched)
-        print(f"{symbol}{ema_touch_state}")
+        
         if debug and ema_12h is not None:
             print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
+            print(f"{symbol}{ema_touch_state}")
 
     # 🔹 Check 1D EMA200
     if len(candles_1d) >= 201:
@@ -355,9 +356,10 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         if touched and not ema_touch_state[state_key]["1d"]:
             messages.append("📌 Touched EMA200 on 1D")
         ema_touch_state[state_key]["1d"] = bool(touched)
-        print(f"{symbol}{ema_touch_state}")
+        
         if debug and ema_1d is not None:
             print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
+            print(f"{symbol}{ema_touch_state}")
 
     # 🔹 Check 4H EMA200
     if len(candles_4h) >= 200:
@@ -368,9 +370,10 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         if touched and not ema_touch_state[state_key]["4h"]:
             messages.append("📌 Touched EMA200 on 4H")
         ema_touch_state[state_key]["4h"] = bool(touched)
-        print(f"{symbol}{ema_touch_state}")
+        
         if debug and ema_4h is not None:
             print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
+            print(f"{symbol}{ema_touch_state}")
 
     # 🔔 Send alert if any
     if messages:
@@ -512,7 +515,7 @@ def send_telegram_alert(symbol, message, priority=False):
 def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
-        hour, minute = 1,0
+        #hour, minute = 1,0
 
         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3,15,16,17]:
 
@@ -589,8 +592,8 @@ def main():
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
-             symbols = ["MOODENG_USDT","WIF_USDT","ZIG_USDT"]
-             #symbols = []
+             #symbols = ["MOODENG_USDT","WIF_USDT","ZIG_USDT"]
+             symbols = []
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=1054)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
