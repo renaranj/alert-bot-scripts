@@ -8,6 +8,7 @@ import pandas as pd
 import csv
 import os
 from ta.trend import EMAIndicator
+import json
 
 Watchlist_Shorts = "watchlists/Shorts.txt"
 Watchlist_Longs = "watchlists/Longs.txt"
@@ -23,7 +24,17 @@ PRICE_CHANGE_THRESHOLD = 10 # in percent
 RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
-ema_touch_state = {}
+TOUCH_STATE_FILE = "ema_touch_state.json"
+
+def load_ema_touch_state():
+    if os.path.exists(TOUCH_STATE_FILE):
+        with open(TOUCH_STATE_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_ema_touch_state(state):
+    with open(TOUCH_STATE_FILE, "w") as f:
+        json.dump(state, f)
 
 def load_config():
     CONFIG_URL = "https://raw.githubusercontent.com/renaranj/alert-bot-scripts/refs/heads/main/custom_config.txt"
@@ -320,10 +331,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         return
     prev_high, prev_low = float(candles_4h[-2][2]), float(candles_4h[-2][3])
 
-    # Store state key
-    state_key = symbol + "_ema"
-
-    # Init state
+    state_key = symbol
     if state_key not in ema_touch_state:
         ema_touch_state[state_key] = {
             "4h": False,
@@ -342,7 +350,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         ema_touch_state[state_key]["12h"] = touched
 
         if debug and ema_12h is not None:
-            print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
+            print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H: H={prev_high}, L={prev_low}, touched={touched}")
 
     # 🔹 Check 1D EMA200
     if len(candles_1d) >= 201:
@@ -355,7 +363,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         ema_touch_state[state_key]["1d"] = touched
 
         if debug and ema_1d is not None:
-            print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
+            print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H: H={prev_high}, L={prev_low}, touched={touched}")
 
     # 🔹 Check 4H EMA200
     if len(candles_4h) >= 200:
@@ -368,7 +376,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         ema_touch_state[state_key]["4h"] = touched
 
         if debug and ema_4h is not None:
-            print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
+            print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H: H={prev_high}, L={prev_low}, touched={touched}")
 
     # 🔔 Send alert if any
     if messages:
@@ -511,7 +519,8 @@ def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
         #hour, minute = 0,0
-
+        ema_touch_state = load_ema_touch_state()
+    
         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3,15,16,17]:
 
          if hour in [0,4,8,12,16,20] and minute in [0,1,2,3]:
@@ -651,6 +660,9 @@ def main():
                              send_telegram_alert(symbol, "stochRsi oversold")
                      else:
                          print(f"[WARN] No logic implemented for: {func_name}")
+         
+        # 🧪 Save the updated state to disk
+        save_ema_touch_state(ema_touch_state)
         
 if __name__ == "__main__":
     main()
