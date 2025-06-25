@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import csv
 import os
-from ta.trend import EMAIndicator
 import json
+from ta.trend import EMAIndicator
 
 Watchlist_Shorts = "watchlists/Shorts.txt"
 Watchlist_Longs = "watchlists/Longs.txt"
@@ -24,8 +24,8 @@ PRICE_CHANGE_THRESHOLD = 10 # in percent
 RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
+
 # Memory to track last EMA touch per symbol+TF
-ema_touch_state = {}
 TOUCH_STATE_FILE = "ema_touch_state.json"
 
 def load_ema_touch_state():
@@ -37,6 +37,9 @@ def load_ema_touch_state():
 def save_ema_touch_state(state):
     with open(TOUCH_STATE_FILE, "w") as f:
         json.dump(state, f)
+
+# 🔥 Load once on script startup
+ema_touch_state = load_ema_touch_state()
 
 def load_config():
     CONFIG_URL = "https://raw.githubusercontent.com/renaranj/alert-bot-scripts/refs/heads/main/custom_config.txt"
@@ -520,9 +523,8 @@ def send_telegram_alert(symbol, message, priority=False):
 def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
-        hour, minute = 0,15
-        ema_touch_state = load_ema_touch_state()
-    
+        hour, minute = 1,15
+            
         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3,15,16,17]:
 
          if hour in [0,4,8,12,16,20] and minute in [0,1,2,3]:
@@ -598,8 +600,8 @@ def main():
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
-             #symbols = ["MOODENG_USDT","WIF_USDT"]
-             symbols = []
+             symbols = ["MOODENG_USDT","WIF_USDT","ZIG_USDT"]
+             #symbols = []
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=1054)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
