@@ -341,7 +341,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
 
         if touched and not ema_touch_state[state_key]["12h"]:
             messages.append("📌 Touched EMA200 on 12H")
-        ema_touch_state[state_key]["12h"] = touched
+        ema_touch_state[state_key]["12h"] = bool(touched)
         print(f"{symbol}{ema_touch_state}")
         if debug and ema_12h is not None:
             print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
@@ -354,7 +354,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
 
         if touched and not ema_touch_state[state_key]["1d"]:
             messages.append("📌 Touched EMA200 on 1D")
-        ema_touch_state[state_key]["1d"] = touched
+        ema_touch_state[state_key]["1d"] = bool(touched)
         print(f"{symbol}{ema_touch_state}")
         if debug and ema_1d is not None:
             print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
@@ -367,7 +367,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
 
         if touched and not ema_touch_state[state_key]["4h"]:
             messages.append("📌 Touched EMA200 on 4H")
-        ema_touch_state[state_key]["4h"] = touched
+        ema_touch_state[state_key]["4h"] = bool(touched)
         print(f"{symbol}{ema_touch_state}")
         if debug and ema_4h is not None:
             print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
