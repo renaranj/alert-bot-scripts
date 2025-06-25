@@ -25,20 +25,7 @@ RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
 
-TOUCH_STATE_FILE = "ema_touch_state.json"
-
-def load_ema_touch_state():
-    if os.path.exists(TOUCH_STATE_FILE):
-        with open(TOUCH_STATE_FILE, "r") as f:
-            return json.load(f)
-    return {}
-
-def save_ema_touch_state(state):
-    with open(TOUCH_STATE_FILE, "w") as f:
-        json.dump(state, f)
-
-# 🔥 Load once on script startup
-ema_touch_state = load_ema_touch_state()
+ema_touch_state = {}
 
 def load_config():
     CONFIG_URL = "https://raw.githubusercontent.com/renaranj/alert-bot-scripts/refs/heads/main/custom_config.txt"
@@ -335,14 +322,17 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         return
     prev_high, prev_low = float(candles_4h[-2][2]), float(candles_4h[-2][3])
 
-    state_key = symbol
+    # Store state key
+    state_key = symbol + "_ema"
+
+    # Init state
     if state_key not in ema_touch_state:
         ema_touch_state[state_key] = {
             "4h": False,
             "12h": False,
             "1d": False
         }
-
+    print(f"{symbol}{ema_touch_state}")
     # 🔹 Check 12H EMA200
     if len(candles_12h) >= 200:
         closes_12h = [float(c[4]) for c in candles_12h]
@@ -352,9 +342,9 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         if touched and not ema_touch_state[state_key]["12h"]:
             messages.append("📌 Touched EMA200 on 12H")
         ema_touch_state[state_key]["12h"] = touched
-
+        print(f"{symbol}{ema_touch_state}")
         if debug and ema_12h is not None:
-            print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H: H={prev_high}, L={prev_low}, touched={touched}")
+            print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
 
     # 🔹 Check 1D EMA200
     if len(candles_1d) >= 201:
@@ -365,9 +355,9 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         if touched and not ema_touch_state[state_key]["1d"]:
             messages.append("📌 Touched EMA200 on 1D")
         ema_touch_state[state_key]["1d"] = touched
-
+        print(f"{symbol}{ema_touch_state}")
         if debug and ema_1d is not None:
-            print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H: H={prev_high}, L={prev_low}, touched={touched}")
+            print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
 
     # 🔹 Check 4H EMA200
     if len(candles_4h) >= 200:
@@ -378,17 +368,14 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
         if touched and not ema_touch_state[state_key]["4h"]:
             messages.append("📌 Touched EMA200 on 4H")
         ema_touch_state[state_key]["4h"] = touched
-
+        print(f"{symbol}{ema_touch_state}")
         if debug and ema_4h is not None:
-            print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H: H={prev_high}, L={prev_low}, touched={touched}")
+            print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
 
     # 🔔 Send alert if any
     if messages:
         full_msg = f"EMA Signals:\n" + "\n".join(messages)
         send_telegram_alert(symbol, full_msg, priority)
-
-    # 🧪 Save the updated state to disk
-    save_ema_touch_state(ema_touch_state)
         
 def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=False):
     candles = candles[:-1] if pattern_name != "12H" else candles
@@ -609,7 +596,7 @@ def main():
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d",limit=350)
                  alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, False,True)
-                 alarm_candle_patterns(symbol, candles_12h, "12H",False,True)
+                 #alarm_candle_patterns(symbol, candles_12h, "12H",False,True)
                  #alarm_ichimoku_crosses(symbol, candles_4h, '4H',False,False)
              #return 
             
