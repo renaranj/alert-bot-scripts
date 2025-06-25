@@ -520,7 +520,7 @@ def send_telegram_alert(symbol, message, priority=False):
 def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
-        #hour, minute = 0,0
+        hour, minute = 0,0
         ema_touch_state = load_ema_touch_state()
     
         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3,15,16,17]:
@@ -529,7 +529,7 @@ def main():
            #-----------BTCUSDT bearbeitung---------------------------------------------------#
            candles_4h = get_candles("BTCUSDT","4h",limit=754)
            candles_12h = get_12h_candles_from_4h(candles_4h)
-           candles_1d = get_candles("BTCUSDT","1d")
+           candles_1d = get_candles("BTCUSDT","1d",limit=250)
            alarm_ema200_crosses("BTCUSDT", candles_4h, candles_12h, candles_1d, True)
            alarm_candle_patterns("BTCUSDT", candles_4h, "4H", True)
            if hour in [0,12]:
