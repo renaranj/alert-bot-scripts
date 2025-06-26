@@ -296,7 +296,7 @@ def alarm_price_crosses(symbol,candles,price, priority=False, debug=False):
         message = f"🔔crossed price:{price:.4f}\n"
         if debug:
             print(f"🔔{symbol} {message} - (h{h:.4f},l{l:.4f})\n")
-        send_telegram_alert(symbol, message, priority)
+        send_telegram_alert(symbol, message,"4h", priority)
      
 def alarm_price_change(symbol, candles, change_threshold=10, priority=False, debug=False):
     if len(candles) < 3:
@@ -309,7 +309,7 @@ def alarm_price_change(symbol, candles, change_threshold=10, priority=False, deb
         message = f"🔔Price Changed: {change_pct:.2f}%"
         if debug:
             print(f"🔔{symbol} Price Changed: {change_pct:.2f}% - c1:{closes[-2]:.4f}, c2:{closes[-3]:.4f} \n")
-        send_telegram_alert(symbol, message, priority)
+        send_telegram_alert(symbol, message, "4h", priority)
     
 def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=False, debug=False):
     def is_ema_in_candle_range(ema, high, low):
@@ -380,10 +380,10 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
     # 🔔 Send alert if any
     if messages:
         full_msg = f"EMA Signals:\n" + "\n".join(messages)
-        send_telegram_alert(symbol, full_msg, priority)
+        send_telegram_alert(symbol, full_msg, interval, priority)
         
-def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=False):
-    candles = candles[:-1] if pattern_name != "12H" else candles
+def alarm_candle_patterns(symbol, candles, interval="4h", priority=False, debug=False):
+    candles = candles[:-1] if interval != "12h" else candles
     if len(candles) < 3:
         return
     messages = []
@@ -400,10 +400,10 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
 
     # Bullish Engulfing: previous candle is red, current is green and body engulfs
     if c1 < o1 and c2 > o2 and o2 < c1 and c2 > o1:
-        messages.append(f"🟢 Bullish Engulfing on {pattern_name}")
+        messages.append(f"🟢 Bullish Engulfing on {interval}")
     # Bearish Engulfing: previous candle is green, current is red and body engulfs
     elif c1 > o1 and c2 < o2 and o2 > c1 and c2 < o1:
-        messages.append(f"🔴 Bearish Engulfing on {pattern_name}")
+        messages.append(f"🔴 Bearish Engulfing on {interval}")
 
     # Continue checking other patterns for the last candle
     o, h, l, c = o2, h2, l2, c2
@@ -421,28 +421,28 @@ def alarm_candle_patterns(symbol, candles, pattern_name, priority=False, debug=F
     
     # Spinning Top
     if body_ratio < 0.3 and upper_ratio > 0.3 and lower_ratio > 0.3:
-        messages.append(f"🌀 Spinning Top on {pattern_name}")
+        messages.append(f"🌀 Spinning Top on {interval}")
     # Hammer
     #if lower_ratio > 0.6 and upper_ratio < 0.2 and body_ratio < 0.3:
     elif lower_ratio > 0.5 and body_ratio < 0.3:
-        messages.append(f"🔨 Hammer detected on {pattern_name}")
+        messages.append(f"🔨 Hammer detected on {interval}")
     # Inverted Hammer
     #elif upper_ratio > 0.6 and lower_ratio < 0.2 and body_ratio < 0.3:
     elif upper_ratio > 0.5 and body_ratio < 0.3:
-        messages.append(f"🔻 Inverted Hammer on {pattern_name}")
+        messages.append(f"🔻 Inverted Hammer on {interval}")
     
     if messages:
        if debug:
           print(f"{symbol} (o {o:.4f}, h{h:.4f},l{l:.4f},c{c:.4f}) - (bd:{body_ratio:.2f},upp:{upper_ratio:.2f},low:{lower_ratio:.2f})")
        "\n".join(messages)
-       send_telegram_alert(symbol, messages, priority)
+       send_telegram_alert(symbol, messages, interval, priority)
  
-def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=False):
+def alarm_ichimoku_crosses(symbol, candles, interval="4h", priority=False, debug=False):
     if len(candles) < 201:
         return ""
     
     # Use latest candle for 12H, otherwise exclude it
-    candles = candles if tf_label == "12H" else candles[:-1]
+    candles = candles if tf_label == "12h" else candles[:-1]
     closes = [float(c[4]) for c in candles]
     prev_close = closes[-2]
     curr_close = closes[-1]
@@ -468,23 +468,23 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
 
     # ✅ Condition 1: Previous inside cloud, current outside
     if prev_bottom <= prev_close <= prev_top and (curr_close < curr_bottom or curr_close > curr_top):
-        messages.append(f"📤 Price exited Ichimoku cloud on {tf_label}")
+        messages.append(f"📤 Price exited Ichimoku cloud on {interval}")
 
     # ✅ Condition 2: Flip from above to below or vice versa
     if (prev_close > prev_top and curr_close < curr_bottom) or (prev_close < prev_bottom and curr_close > curr_top):
-        messages.append(f"🔁 Price flipped sides across the cloud on {tf_label}")
+        messages.append(f"🔁 Price flipped sides across the cloud on {interval}")
 
     # Tenkan/Kijun Cross
     if tenkan.iloc[-2] < kijun.iloc[-2] and tenkan.iloc[-1] >= kijun.iloc[-1]:
         if curr_close > curr_top:
-            messages.append(f"🟢 Bullish Tenkan/Kijun cross above cloud on {tf_label}")
+            messages.append(f"🟢 Bullish Tenkan/Kijun cross above cloud on {interval}")
         else:
-            messages.append(f"🟡 Bullish Tenkan/Kijun cross below/inside cloud on {tf_label}")
+            messages.append(f"🟡 Bullish Tenkan/Kijun cross below/inside cloud on {interval}")
     elif tenkan.iloc[-2] > kijun.iloc[-2] and tenkan.iloc[-1] <= kijun.iloc[-1]:
         if curr_close < curr_bottom:
-            messages.append(f"🔴 Bearish Tenkan/Kijun cross below cloud on {tf_label}")
+            messages.append(f"🔴 Bearish Tenkan/Kijun cross below cloud on {interval}")
         else:
-            messages.append(f"🟠 Bearish Tenkan/Kijun cross above/inside cloud on {tf_label}")
+            messages.append(f"🟠 Bearish Tenkan/Kijun cross above/inside cloud on {interval}")
 
     if messages:
         combined_msg = "\n".join(messages)
@@ -492,13 +492,14 @@ def alarm_ichimoku_crosses(symbol, candles, tf_label="", priority=False, debug=F
             print(f"[{symbol}]\n{messages}")
             print(f"Ichimoku Cloud previous {prev_close:.4f}:({prev_top:.4f},{prev_bottom:.4f}), current {curr_close:.4f}: ({curr_top:.4f},{curr_bottom:.4f})")
             print(f"Tenkan/Kijun previous:({tenkan.iloc[-2]:.4f},{kijun.iloc[-2]:.4f}), current:({tenkan.iloc[-1]:.4f},{kijun.iloc[-1]:.4f})")
-        send_telegram_alert(symbol, combined_msg, priority)
+        send_telegram_alert(symbol, combined_msg, interval, priority)
                        
-def send_telegram_alert(symbol, message, priority=False):
+def send_telegram_alert(symbol, message, interval="4h", priority=False):
     if "_" in symbol:
-       symbol = symbol.replace("_USDT", "USDT.P")
+        symbol = symbol.replace("_USDT", "USDT.P")
+        interval = futures_interval_map.get(interval)
     prefix = "🚨🚨" if priority else ""
-    message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol})\n{message}"
+    message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}&interval=interval)\n{message}"
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -527,11 +528,11 @@ def main():
            candles_12h = get_12h_candles_from_4h(candles_4h)
            candles_1d = get_candles("BTCUSDT","1d",limit=250)
            alarm_ema200_crosses("BTCUSDT", candles_4h, candles_12h, candles_1d, True)
-           alarm_candle_patterns("BTCUSDT", candles_4h, "4H", True)
+           alarm_candle_patterns("BTCUSDT", candles_4h, "4h", True)
            if hour in [0,12]:
-             alarm_candle_patterns("BTCUSDT", candles_12h, "12H", True)
+             alarm_candle_patterns("BTCUSDT", candles_12h, "12h", True)
            if hour in [0]:
-             alarm_candle_patterns("BTCUSDT", candles_1d, "1D", True)
+             alarm_candle_patterns("BTCUSDT", candles_1d, "1d", True)
            
             #bearbeitung meine Coins
            send_telegram_alert("MX_USDT", "<-----Bearbeitung meine spots/futures----->")
@@ -542,11 +543,11 @@ def main():
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
                alarm_price_change(symbol, candles_4h, 20, True)
-               alarm_candle_patterns(symbol, candles_4h, "4H", True)
+               alarm_candle_patterns(symbol, candles_4h, "4h", True)
                if hour in [0,12]:
-                    alarm_candle_patterns(symbol, candles_12h, "12H", True)
+                    alarm_candle_patterns(symbol, candles_12h, "12h", True)
                if hour in [0]:
-                    alarm_candle_patterns(symbol, candles_1d, "1D", True)   
+                    alarm_candle_patterns(symbol, candles_1d, "1d", True)   
            
             #Coins wo ich position behalte            
            symbols = get_open_symbols("futures")
@@ -556,11 +557,11 @@ def main():
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
                alarm_price_change(symbol, candles_4h, -20, True)
-               alarm_candle_patterns(symbol, candles_4h, "4H", True)
+               alarm_candle_patterns(symbol, candles_4h, "4h", True)
                if hour in [0,12]:
-                    alarm_candle_patterns(symbol, candles_12h, "12H", True)
+                    alarm_candle_patterns(symbol, candles_12h, "12h", True)
                if hour in [0]:
-                    alarm_candle_patterns(symbol, candles_1d, "1D", True)
+                    alarm_candle_patterns(symbol, candles_1d, "1d", True)
          
          else:  
             #Beobachtung my persönliches List coins
@@ -571,13 +572,13 @@ def main():
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
                closes_4h = [float(c[4]) for c in candles_4h]
-               alarm_ichimoku_crosses(symbol, candles_4h, '4H')
+               alarm_ichimoku_crosses(symbol, candles_4h, '4h')
                stoch_rsiK, stoch_rsiD = calculate_stoch_rsi(closes_4h)
                if stoch_rsiK and stoch_rsiD and (stoch_rsiK < 20 or stoch_rsiK > 80) and (stoch_rsiD < 20 or stoch_rsiD > 80):
                   if hour in [0,12]:
-                    alarm_candle_patterns(symbol, candles_12h, "12H")
+                    alarm_candle_patterns(symbol, candles_12h, "12h")
                   if hour in [0]:
-                    alarm_candle_patterns(symbol, candles_1d, "1D")   
+                    alarm_candle_patterns(symbol, candles_1d, "1h")   
                
            #Beobachtung all pair futures
            send_telegram_alert("MX_USDT", "<-----Bearbeitung Alls Pairs----->")
@@ -587,9 +588,9 @@ def main():
                candles_12h = get_12h_candles_from_4h(candles_4h)
                candles_1d = get_candles(symbol,"1d")
                if hour in [0,12]:
-                   alarm_ichimoku_crosses(symbol, candles_12h, '12H') 
+                   alarm_ichimoku_crosses(symbol, candles_12h, '12h') 
                if hour in [0]:
-                   alarm_ichimoku_crosses(symbol, candles_1d, '1D')
+                   alarm_ichimoku_crosses(symbol, candles_1d, '1d')
                alarm_price_change(symbol, candles_4h, 10)
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
@@ -601,8 +602,8 @@ def main():
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d",limit=350)
                  alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
-                 alarm_candle_patterns(symbol, candles_12h, "12H")
-                 alarm_ichimoku_crosses(symbol, candles_4h, '4H')
+                 alarm_candle_patterns(symbol, candles_12h, "12h")
+                 alarm_ichimoku_crosses(symbol, candles_4h, '4h')
                  alarm_price_change(symbol, candles_4h, 10)
                  alarm_price_crosses(symbol, candles_4h, float(0.011))    
              #return 
