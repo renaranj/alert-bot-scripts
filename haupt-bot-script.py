@@ -496,7 +496,7 @@ def alarm_ichimoku_crosses(symbol, candles, interval="4h", priority=False, debug
 def send_telegram_alert(symbol, message, interval="4h",priority=False,debug=False):
     if "_" in symbol:
 	symbol = symbol.replace("_USDT", "USDT.P")
-	interval = futures_interval_map.get(interval)
+	#interval = futures_interval_map.get(interval)
     prefix = "🚨🚨" if priority else ""
     message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}&interval=interval)\n{message}"
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -603,8 +603,8 @@ def main():
                  alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, False,True)
                  alarm_candle_patterns(symbol, candles_12h, "12h",False,True)
                  alarm_ichimoku_crosses(symbol, candles_4h, '4h',False,False)
-				 alarm_price_change(symbol, candles_4h, 1)
-				 alarm_price_crosses(symbol, candles_4h, 0.001, True)
+		 alarm_price_change(symbol, candles_4h, 1)
+		 alarm_price_crosses(symbol, candles_4h, 0.001, True)
              #return 
             
              print(f"executing load config...")
