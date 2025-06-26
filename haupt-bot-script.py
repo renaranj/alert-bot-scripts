@@ -354,6 +354,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
 
         if debug and ema_12h:
             print(f"{symbol} | 12H EMA: {ema_12h:.4f}, H={prev_high}, L={prev_low}, touched={touched}")
+            print(state)
 
     # --- 1D EMA Check ---
     if len(candles_1d) >= 201:
@@ -367,7 +368,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
 
         if debug and ema_1d:
             print(f"{symbol} | 1D EMA: {ema_1d:.4f}, H={prev_high}, L={prev_low}, touched={touched}")
-
+            print(state)
     # --- 4H EMA Check ---
     if len(candles_4h) >= 200:
         closes_4h = [float(c[4]) for c in candles_4h[:-1]]
@@ -380,7 +381,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
 
         if debug and ema_4h:
             print(f"{symbol} | 4H EMA: {ema_4h:.4f}, H={prev_high}, L={prev_low}, touched={touched}")
-
+            print(state)
     # --- Save updated state ---
     save_ema_touch_state(state)
 
@@ -608,7 +609,7 @@ def main():
                  candles_4h = get_candles(symbol,"4h",limit=1054)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d",limit=350)
-                 alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
+                 alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d,False,True)
                  alarm_candle_patterns(symbol, candles_12h, "12h")
                  alarm_ichimoku_crosses(symbol, candles_4h, '4h')
                  alarm_price_change(symbol, candles_4h, 10)
