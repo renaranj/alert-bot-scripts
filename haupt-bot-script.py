@@ -495,25 +495,25 @@ def alarm_ichimoku_crosses(symbol, candles, interval="4h", priority=False, debug
                        
 def send_telegram_alert(symbol, message, interval="4h",priority=False,debug=False):
     if "_" in symbol:
-	symbol = symbol.replace("_USDT", "USDT.P")
-	#interval = futures_interval_map.get(interval)
-    prefix = "🚨🚨" if priority else ""
-    message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}&interval=interval)\n{message}"
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    data = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": message,
-        "parse_mode": "Markdown",
-        "disable_web_page_preview": True
-    }
-
-    try:
+		symbol = symbol.replace("_USDT", "USDT.P")
+		interval = futures_interval_map.get(interval)
+	prefix = "🚨🚨" if priority else ""
+	message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}&interval=interval)\n{message}"
+	url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+	data = {
+	        "chat_id": TELEGRAM_CHAT_ID,
+	        "text": message,
+	        "parse_mode": "Markdown",
+	        "disable_web_page_preview": True
+	    }
+	try:
         response = requests.post(url, data=data)
         if response.status_code != 200:
-            print(f"Failed to send Telegram alert: {response.status_code} - {response.text}")
-    except Exception as e:
-        print(f"Error sending Telegram alert: {e}")
+        	print(f"Failed to send Telegram alert: {response.status_code} - {response.text}")
+    	except Exception as e:
+        	print(f"Error sending Telegram alert: {e}")
 
+    
 def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
