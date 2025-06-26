@@ -493,9 +493,9 @@ def alarm_ichimoku_crosses(symbol, candles, interval="4h", priority=False, debug
             print(f"Tenkan/Kijun previous:({tenkan.iloc[-2]:.4f},{kijun.iloc[-2]:.4f}), current:({tenkan.iloc[-1]:.4f},{kijun.iloc[-1]:.4f})")
         send_telegram_alert(symbol, combined_msg, interval, priority)
                        
-def send_telegram_alert(symbol, message, priority=False):
+def send_telegram_alert(symbol, message, interal="4h", priority=False):
     if "_" in symbol:
-	symbol = symbol.replace("_USDT", "USDT.P")
+	#symbol = symbol.replace("_USDT", "USDT.P")
 	interval = futures_interval_map.get(interval)											 
     prefix = "🚨🚨" if priority else ""
     message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}&interval=interval)\n{message}"
