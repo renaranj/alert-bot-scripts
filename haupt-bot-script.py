@@ -380,7 +380,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
     # 🔔 Send alert if any
     if messages:
         full_msg = f"EMA Signals:\n" + "\n".join(messages)
-        send_telegram_alert(symbol, full_msg, interval, priority)
+        send_telegram_alert(symbol, full_msg, "4h", priority)
         
 def alarm_candle_patterns(symbol, candles, interval="4h", priority=False, debug=False):
     candles = candles[:-1] if interval != "12h" else candles
