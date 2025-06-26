@@ -25,7 +25,7 @@ RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
 
-ema_touch_state = {}
+TOUCH_STATE_FILE = "ema_touch_state.json"
 
 # --- Intervals ---
 futures_interval_map = {
@@ -37,6 +37,21 @@ futures_interval_map = {
         "1W": "Week1",
         "1M": "Month1",
     }
+
+# Load touch state from file
+def load_ema_touch_state():
+    if os.path.exists(TOUCH_STATE_FILE):
+        with open(TOUCH_STATE_FILE, "r") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    return {}
+
+# Save touch state to file
+def save_ema_touch_state(state):
+    with open(TOUCH_STATE_FILE, "w") as f:
+        json.dump(state, f)
 
 def load_config():
     CONFIG_URL = "https://raw.githubusercontent.com/renaranj/alert-bot-scripts/refs/heads/main/custom_config.txt"
@@ -313,71 +328,63 @@ def alarm_price_change(symbol, candles, change_threshold=10, priority=False, deb
     
 def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=False, debug=False):
     def is_ema_in_candle_range(ema, high, low):
-        if ema is None or high is None or low is None:
-            return False
-        return low <= ema <= high
+        return ema is not None and high is not None and low is not None and low < ema < high
 
-    messages = []
-
-    # Use previous full 4H candle for all comparisons
     if len(candles_4h) < 2:
         return
+
     prev_high, prev_low = float(candles_4h[-2][2]), float(candles_4h[-2][3])
-
-    # Store state key
+    messages = []
     state_key = symbol + "_ema"
+    
+    # Load saved state from file
+    state = load_ema_touch_state()
+    if state_key not in state:
+        state[state_key] = {"4h": False, "12h": False, "1d": False}
 
-    # Init state
-    if state_key not in ema_touch_state:
-        ema_touch_state[state_key] = {
-            "4h": False,
-            "12h": False,
-            "1d": False
-        }
-    print(f"{symbol}{ema_touch_state}")
-    # 🔹 Check 12H EMA200
+    # --- 12H EMA Check ---
     if len(candles_12h) >= 200:
         closes_12h = [float(c[4]) for c in candles_12h]
         ema_12h = calculate_ema(closes_12h)
-        touched = ema_12h is not None and is_ema_in_candle_range(ema_12h, prev_high, prev_low)
+        touched = is_ema_in_candle_range(ema_12h, prev_high, prev_low)
 
-        if touched and not ema_touch_state[state_key]["12h"]:
+        if touched and not state[state_key]["12h"]:
             messages.append("📌 Touched EMA200 on 12H")
-        ema_touch_state[state_key]["12h"] = bool(touched)
-        
-        if debug and ema_12h is not None:
-            print(f"{symbol} | 12H EMA: {ema_12h:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
-            print(f"{symbol}{ema_touch_state}")
+        state[state_key]["12h"] = bool(touched)
 
-    # 🔹 Check 1D EMA200
+        if debug and ema_12h:
+            print(f"{symbol} | 12H EMA: {ema_12h:.4f}, H={prev_high}, L={prev_low}, touched={touched}")
+
+    # --- 1D EMA Check ---
     if len(candles_1d) >= 201:
         closes_1d = [float(c[4]) for c in candles_1d[:-1]]
         ema_1d = calculate_ema(closes_1d)
-        touched = ema_1d is not None and is_ema_in_candle_range(ema_1d, prev_high, prev_low)
+        touched = is_ema_in_candle_range(ema_1d, prev_high, prev_low)
 
-        if touched and not ema_touch_state[state_key]["1d"]:
+        if touched and not state[state_key]["1d"]:
             messages.append("📌 Touched EMA200 on 1D")
-        ema_touch_state[state_key]["1d"] = bool(touched)
-        
-        if debug and ema_1d is not None:
-            print(f"{symbol} | 1D EMA: {ema_1d:.4f}, 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
-            print(f"{symbol}{ema_touch_state}")
+        state[state_key]["1d"] = bool(touched)
 
-    # 🔹 Check 4H EMA200
+        if debug and ema_1d:
+            print(f"{symbol} | 1D EMA: {ema_1d:.4f}, H={prev_high}, L={prev_low}, touched={touched}")
+
+    # --- 4H EMA Check ---
     if len(candles_4h) >= 200:
         closes_4h = [float(c[4]) for c in candles_4h[:-1]]
         ema_4h = calculate_ema(closes_4h)
-        touched = ema_4h is not None and is_ema_in_candle_range(ema_4h, prev_high, prev_low)
+        touched = is_ema_in_candle_range(ema_4h, prev_high, prev_low)
 
-        if touched and not ema_touch_state[state_key]["4h"]:
+        if touched and not state[state_key]["4h"]:
             messages.append("📌 Touched EMA200 on 4H")
-        ema_touch_state[state_key]["4h"] = bool(touched)
-        
-        if debug and ema_4h is not None:
-            print(f"{symbol} | 4H EMA: {ema_4h:.4f}, Prev 4H candle: H={prev_high}, L={prev_low}, touched={touched}")
-            print(f"{symbol}{ema_touch_state}")
+        state[state_key]["4h"] = bool(touched)
 
-    # 🔔 Send alert if any
+        if debug and ema_4h:
+            print(f"{symbol} | 4H EMA: {ema_4h:.4f}, H={prev_high}, L={prev_low}, touched={touched}")
+
+    # --- Save updated state ---
+    save_ema_touch_state(state)
+
+    # --- Send alert if anything new triggered ---
     if messages:
         full_msg = f"EMA Signals:\n" + "\n".join(messages)
         send_telegram_alert(symbol, full_msg, "4h", priority)
