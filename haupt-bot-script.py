@@ -499,7 +499,7 @@ def send_telegram_alert(symbol, message, interval="4h", priority=False):
         symbol = symbol.replace("_USDT", "USDT.P")
         interval = futures_interval_map.get(interval)
     prefix = "🚨🚨" if priority else ""
-    message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}&interval=interval)\n{message}"
+    message = f"{prefix}[{symbol}](https://www.tradingview.com/chart/?symbol=MEXC:{symbol}&interval={interval})\n{message}"
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {
         "chat_id": TELEGRAM_CHAT_ID,
