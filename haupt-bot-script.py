@@ -442,7 +442,7 @@ def alarm_ichimoku_crosses(symbol, candles, interval="4h", priority=False, debug
         return ""
     
     # Use latest candle for 12H, otherwise exclude it
-    candles = candles if tf_label == "12h" else candles[:-1]
+    candles = candles if interval == "12h" else candles[:-1]
     closes = [float(c[4]) for c in candles]
     prev_close = closes[-2]
     curr_close = closes[-1]
