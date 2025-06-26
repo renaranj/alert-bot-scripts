@@ -27,6 +27,17 @@ EMA_LONG_PERIOD = 200
 
 ema_touch_state = {}
 
+# --- Intervals ---
+futures_interval_map = {
+        "15m": "Min15",
+        "30m": "Min30",
+        "1h": "Hour1",
+        "4h": "Hour4",
+        "1d": "Day1",
+        "1W": "Week1",
+        "1M": "Month1",
+    }
+
 def load_config():
     CONFIG_URL = "https://raw.githubusercontent.com/renaranj/alert-bot-scripts/refs/heads/main/custom_config.txt"
     try:
@@ -125,15 +136,6 @@ def get_open_symbols(market_type="spot"):
 
 def get_candles(symbol, interval, limit= EMA_LONG_PERIOD + 1):
  if symbol.endswith("_USDT"):
-    futures_interval_map = {
-        "15m": "Min15",
-        "30m": "Min30",
-        "1h": "Hour1",
-        "4h": "Hour4",
-        "1d": "Day1",
-        "1W": "Week1",
-        "1M": "Month1",
-    }
     interval = futures_interval_map.get(interval)
     url = f"https://contract.mexc.com/api/v1/contract/kline/{symbol}"
     params = {'interval': interval, 'limit': limit}
