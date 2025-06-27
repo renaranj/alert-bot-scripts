@@ -685,7 +685,7 @@ def main():
                #alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
-             poll_telegram()
+             #poll_telegram()
              symbols = []
              #symbols = ["QNT_USDT","BADGER_USDT"]
              for symbol in symbols:
