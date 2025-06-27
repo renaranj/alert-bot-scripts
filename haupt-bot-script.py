@@ -37,7 +37,7 @@ futures_interval_map = {
         "1M": "Month1",
     }
 
-GITHUB_REPO = "repos/renaranj"
+GITHUB_REPO = "renaranj/alert-bot-scripts"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 EMA_TOUCH_FILE = "ema_touch_state.json"
 PRICE_ALARM_FILE = "price_alarm_state.json"
