@@ -610,7 +610,7 @@ def poll_telegram():
             chat_id = message["chat"]["id"]
 
             response = handle_telegram_command(text)
-            send_telegram_message(chat_id, response)
+            send_telegram_alert("info", response)
 
         time.sleep(2)
             
