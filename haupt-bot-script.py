@@ -312,7 +312,9 @@ def alarm_price_crosses(symbol,candles,price, priority=False, debug=False):
         if debug:
             print(f"🔔{symbol} {message} - (h{h:.4f},l{l:.4f})\n")
         send_telegram_alert(symbol, message,"4h", priority)
-     
+        return True
+    return False
+
 def alarm_price_change(symbol, candles, change_threshold=10, priority=False, debug=False):
     if len(candles) < 3:
         return
@@ -325,7 +327,9 @@ def alarm_price_change(symbol, candles, change_threshold=10, priority=False, deb
         if debug:
             print(f"🔔{symbol} Price Changed: {change_pct:.2f}% - c1:{closes[-2]:.4f}, c2:{closes[-3]:.4f} \n")
         send_telegram_alert(symbol, message, "4h", priority)
-    
+        return True
+    return False
+        
 def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=False, debug=False):
     def is_ema_in_candle_range(ema, high, low):
         return ema is not None and high is not None and low is not None and low < ema < high
@@ -531,6 +535,8 @@ def main():
         if hour in [0,4,8,12,16,20] and minute in [0,1,2,3,15,16,17]:
 
          if hour in [0,4,8,12,16,20] and minute in [0,1,2,3]:
+            #bearbeitung meine Coins
+           send_telegram_alert("MX_USDT", "<-----Bearbeitung meine spots/futures----->")
            #-----------BTCUSDT bearbeitung---------------------------------------------------#
            candles_4h = get_candles("BTCUSDT","4h",limit=754)
            candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -542,8 +548,6 @@ def main():
            if hour in [0]:
              alarm_candle_patterns("BTCUSDT", candles_1d, "1d", True)
            
-            #bearbeitung meine Coins
-           send_telegram_alert("MX_USDT", "<-----Bearbeitung meine spots/futures----->")
            symbols = get_open_symbols("spot")
            #open_spots = []    
            for symbol in symbols:
@@ -600,11 +604,11 @@ def main():
                if hour in [0]:
                    alarm_ichimoku_crosses(symbol, candles_1d, '1d')
                alarm_price_change(symbol, candles_4h, 10)
-               alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
+               #alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
-             symbols = ["QNT_USDT","BADGER_USDT"]
-             #symbols = []
+             #symbols = ["QNT_USDT","BADGER_USDT"]
+             symbols = []
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=1054)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
@@ -616,6 +620,17 @@ def main():
                  alarm_price_crosses(symbol, candles_4h, float(0.011))    
              #return 
             
+             #find crosses
+             #send_telegram_alert("MX_USDT", "<-----search for ema200 crosses----->")
+             symbols = get_allpairs_symbols("futures")
+             for symbol in symbols:
+               candles_15m = get_candles(symbol,"15m",limit=3)
+               candles_4h = get_candles(symbol,"4h",limit=754)
+               candles_12h = get_12h_candles_from_4h(candles_4h)
+               candles_1d = get_candles(symbol,"1d",limit=250)
+               if alarm_price_change(symbol, candles_15m, 10):
+                  alarm_ema200_crosses(symbol, candles_15m, candles_12h, candles_1d)
+                       
              print(f"executing load config...")
              executions = load_config()
              if not executions:
