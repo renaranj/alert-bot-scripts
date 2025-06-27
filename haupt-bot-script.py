@@ -603,8 +603,8 @@ def main():
                alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
-             #symbols = ["MOODENG_USDT","WIF_USDT","ZIG_USDT"]
-             symbols = []
+             symbols = ["QNT_USDT","BADGER_USDT"]
+             #symbols = []
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=1054)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
