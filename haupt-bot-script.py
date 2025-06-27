@@ -46,30 +46,22 @@ PRICE_ALARM_FILE = "price_alarm_state.json"
 def load_price_alarm_state():
     url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{PRICE_ALARM_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    response = requests.get(url, headers=headers)
-    if response.status_code == 404:
-        return {}, None  # file not found, create fresh
-    response.raise_for_status()
-    content = response.json()
-    try:
-        decoded = base64.b64decode(content["content"]).decode("utf-8")
-        data = json.loads(decoded) if decoded.strip() else {}
-    except:
-        data = {}
-    return data, content["sha"]
+    r = requests.get(url, headers=headers)
+    content = r.json()
+    decoded = base64.b64decode(content["content"]).decode("utf-8")
+    return json.loads(decoded or '{}'), content["sha"]
 
-def save_price_alarm_state(state, sha=None):
+def save_price_alarm_state(state, sha):
     url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{PRICE_ALARM_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    payload = {
-        "message": "Update price alarm state",
-        "content": base64.b64encode(json.dumps(state, indent=2).encode("utf-8")).decode("utf-8"),
-        "branch": "main"  # or your default branch
+    encoded_content = base64.b64encode(json.dumps(state, indent=2).encode()).decode()
+    data = {
+        "message": "Update price alarms",
+        "content": encoded_content,
+        "branch": "main",
+        "sha": sha
     }
-    if sha:
-        payload["sha"] = sha
-    response = requests.put(url, headers=headers, json=payload)
-    response.raise_for_status()
+    requests.put(url, headers=headers, json=data)
         
 # Get EMA state from GitHub
 def load_ema_touch_state():
@@ -580,7 +572,6 @@ def send_telegram_alert(symbol, message, interval="4h", priority=False):
 def handle_telegram_command(command_text):
     state, sha = load_price_alarm_state()
 
-    # Command: /alarm BTC_USDT 42000
     if command_text.startswith("/alarm "):
         parts = command_text.split()
         if len(parts) == 3:
@@ -610,7 +601,7 @@ def poll_telegram():
             chat_id = message["chat"]["id"]
 
             response = handle_telegram_command(text)
-            send_telegram_alert("info", response)
+            send_telegram_message(chat_id, response)
 
         time.sleep(2)
             
