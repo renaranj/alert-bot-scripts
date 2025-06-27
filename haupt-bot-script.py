@@ -37,13 +37,43 @@ futures_interval_map = {
         "1M": "Month1",
     }
 
-GITHUB_FILE_PATH = "ema_touch_state.json"
+GITHUB_REPO = "repos/renaranj"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-
-GITHUB_API_URL = f"https://api.github.com/repos/renaranj/alert-bot-scripts/contents/{GITHUB_FILE_PATH}"
+EMA_TOUCH_FILE = "ema_touch_state.json"
+PRICE_ALARM_FILE = "price_alarm_state.json"
 
 # Get EMA state from GitHub
+def load_price_alarm_state():
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{PRICE_ALARM_FILE}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    response = requests.get(url, headers=headers)
+    if response.status_code == 404:
+        return {}, None  # file not found, create fresh
+    response.raise_for_status()
+    content = response.json()
+    try:
+        decoded = base64.b64decode(content["content"]).decode("utf-8")
+        data = json.loads(decoded) if decoded.strip() else {}
+    except:
+        data = {}
+    return data, content["sha"]
+
+def save_price_alarm_state(state, sha=None):
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{PRICE_ALARM_FILE}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    payload = {
+        "message": "Update price alarm state",
+        "content": base64.b64encode(json.dumps(state, indent=2).encode("utf-8")).decode("utf-8"),
+        "branch": "main"  # or your default branch
+    }
+    if sha:
+        payload["sha"] = sha
+    response = requests.put(url, headers=headers, json=payload)
+    response.raise_for_status()
+        
+# Get EMA state from GitHub
 def load_ema_touch_state():
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{EMA_TOUCH_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     response = requests.get(GITHUB_API_URL, headers=headers)
     if response.status_code == 200:
@@ -547,6 +577,43 @@ def send_telegram_alert(symbol, message, interval="4h", priority=False):
     except Exception as e:
         print(f"Error sending Telegram alert: {e}")
 
+def handle_telegram_command(command_text):
+    state, sha = load_price_alarm_state()
+
+    # Command: /alarm BTC_USDT 42000
+    if command_text.startswith("/alarm "):
+        parts = command_text.split()
+        if len(parts) == 3:
+            symbol, price = parts[1], float(parts[2])
+            key = f"{symbol}_{price:.4f}"
+            if key not in state:
+                state[key] = True
+                save_price_alarm_state(state, sha)
+                return f"✅ Alarm for {symbol} at {price:.4f} created."
+            else:
+                return f"⚠️ Alarm for {symbol} at {price:.4f} already exists."
+
+    return "❓ Invalid command. Use: /alarm SYMBOL PRICE"
+
+def poll_telegram():
+    last_update_id = None
+    while True:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getUpdates"
+        if last_update_id:
+            url += f"?offset={last_update_id + 1}"
+
+        resp = requests.get(url).json()
+        for update in resp.get("result", []):
+            last_update_id = update["update_id"]
+            message = update.get("message", {})
+            text = message.get("text", "")
+            chat_id = message["chat"]["id"]
+
+            response = handle_telegram_command(text)
+            send_telegram_message(chat_id, response)
+
+        time.sleep(2)
+            
 def main():
         now = datetime.now(timezone.utc)
         hour, minute = now.hour, now.minute
@@ -627,6 +694,7 @@ def main():
                #alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
+             poll_telegram()
              symbols = []
              #symbols = ["QNT_USDT","BADGER_USDT"]
              for symbol in symbols:
