@@ -605,7 +605,7 @@ def handle_telegram_command(command_text):
     return "❓ Invalid command. Use: /alarm SYMBOL PRICE"
 
 def poll_telegram():
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getUpdates"
     try:
         resp = requests.get(url)
         updates = resp.json().get("result", [])
