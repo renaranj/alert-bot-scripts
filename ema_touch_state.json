@@ -3,5 +3,10 @@
     "4h": false,
     "12h": false,
     "1d": false
+  },
+  "BADGER_USDT_ema": {
+    "4h": true,
+    "12h": false,
+    "1d": false
   }
 }
