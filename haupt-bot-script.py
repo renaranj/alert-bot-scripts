@@ -63,6 +63,20 @@ def save_price_alarm_state(state, sha):
     }
     requests.put(url, headers=headers, json=data)
         
+def check_price_alarms():
+    state, sha = load_price_alarm_state()
+    new_state = dict(state)
+
+    for key in state:
+        symbol, price = key.rsplit("_", 1)
+        price = float(price)
+        candles = get_candles(symbol, "15m", limit=2)
+        if alarm_price_crosses(symbol, candles, price):
+            del new_state[key]  # Remove alarm after it triggered
+
+    if new_state != state:
+        save_price_alarm_state(new_state, sha)
+            
 # Get EMA state from GitHub
 def load_ema_touch_state():
     url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{EMA_TOUCH_FILE}"
@@ -685,7 +699,8 @@ def main():
                #alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
             
         else:
-             #poll_telegram()
+             poll_telegram()
+             check_price_alarms()
              symbols = []
              #symbols = ["QNT_USDT","BADGER_USDT"]
              for symbol in symbols:
