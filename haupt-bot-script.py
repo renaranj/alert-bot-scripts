@@ -605,23 +605,23 @@ def handle_telegram_command(command_text):
     return "❓ Invalid command. Use: /alarm SYMBOL PRICE"
 
 def poll_telegram():
-    last_update_id = None
-    while True:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getUpdates"
-        if last_update_id:
-            url += f"?offset={last_update_id + 1}"
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+    try:
+        resp = requests.get(url)
+        updates = resp.json().get("result", [])
+        for update in updates:
+            message = update.get("message")
+            if not message:
+                continue  # Skip if no message part (e.g., edited_message or callback)
 
-        resp = requests.get(url).json()
-        for update in resp.get("result", []):
-            last_update_id = update["update_id"]
-            message = update.get("message", {})
-            text = message.get("text", "")
             chat_id = message["chat"]["id"]
+            text = message.get("text", "")
+            if text.startswith("/alarm "):
+                response = handle_telegram_command(text)
+                send_telegram_message(chat_id, response)
 
-            response = handle_telegram_command(text)
-            send_telegram_message(chat_id, response)
-
-        time.sleep(2)
+    except Exception as e:
+        print(f"[ERROR] Failed to poll Telegram: {e}")
             
 def main():
         now = datetime.now(timezone.utc)
