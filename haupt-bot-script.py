@@ -9,23 +9,22 @@ import csv
 import os
 import json
 from ta.trend import EMAIndicator
+import base64
 
 Watchlist_Shorts = "watchlists/Shorts.txt"
 Watchlist_Longs = "watchlists/Longs.txt"
 
 # === PLACEHOLDERS ===
-TELEGRAM_TOKEN = "7716430771:AAHqCZNoDACm3qlaue4G_hTJkyrxDRV9uxo"
-TELEGRAM_CHAT_ID = "6487259893"
-API_KEY = 'mx0vglybt9Fm3utSdv'
-API_SECRET = 'e8b636b031c2451d91ad03b4928b18bd'
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+API_KEY = os.getenv("API_KEY")
+API_SECRET = os.getenv("API_SECRET")
 
 # --- Constants ---
 PRICE_CHANGE_THRESHOLD = 10 # in percent
 RSI_THRESHOLD = 70
 RSI_PERIOD = 14
 EMA_LONG_PERIOD = 200
-
-TOUCH_STATE_FILE = "ema_touch_state.json"
 
 # --- Intervals ---
 futures_interval_map = {
@@ -38,21 +37,42 @@ futures_interval_map = {
         "1M": "Month1",
     }
 
-# Load touch state from file
+GITHUB_FILE_PATH = "ema_touch_state.json"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+GITHUB_API_URL = f"https://api.github.com/repos/renaranj/alert-bot-scripts/contents/{GITHUB_FILE_PATH}"
+
+# Get EMA state from GitHub
 def load_ema_touch_state():
-    if os.path.exists(TOUCH_STATE_FILE):
-        with open(TOUCH_STATE_FILE, "r") as f:
-            try:
-                return json.load(f)
-            except json.JSONDecodeError:
-                return {}
-    return {}
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    response = requests.get(GITHUB_API_URL, headers=headers)
+    if response.status_code == 200:
+        content = response.json()
+        decoded = base64.b64decode(content["content"]).decode("utf-8")
+        return json.loads(decoded), content["sha"]
+    else:
+        print(f"Failed to load from GitHub: {response.status_code}, {response.text}")
+        return {}, None
 
-# Save touch state to file
-def save_ema_touch_state(state):
-    with open(TOUCH_STATE_FILE, "w") as f:
-        json.dump(state, f)
-
+# Save EMA state to GitHub
+def save_ema_touch_state(data, sha):
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    content = base64.b64encode(json.dumps(data, indent=2).encode()).decode("utf-8")
+    payload = {
+        "message": "Update EMA state",
+        "content": content,
+        "sha": sha,
+        "branch": "main"  # or the branch you're using
+    }
+    response = requests.put(GITHUB_API_URL, headers=headers, data=json.dumps(payload))
+    if response.status_code == 200 or response.status_code == 201:
+        print("State saved to GitHub.")
+    else:
+        print(f"Failed to save to GitHub: {response.status_code}, {response.text}")
+            
 def load_config():
     CONFIG_URL = "https://raw.githubusercontent.com/renaranj/alert-bot-scripts/refs/heads/main/custom_config.txt"
     try:
@@ -342,10 +362,10 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
     state_key = symbol + "_ema"
     
     # Load saved state from file
-    state = load_ema_touch_state()
+    state, sha = load_ema_touch_state()
+
     if state_key not in state:
         state[state_key] = {"4h": False, "12h": False, "1d": False}
-
     # --- 12H EMA Check ---
     if len(candles_12h) >= 200:
         closes_12h = [float(c[4]) for c in candles_12h]
@@ -387,7 +407,7 @@ def alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d, priority=F
             print(f"{symbol} | 4H EMA: {ema_4h:.4f}, H={prev_high}, L={prev_low}, touched={touched}")
             print(state)
     # --- Save updated state ---
-    save_ema_touch_state(state)
+    save_ema_touch_state(state, sha)
 
     # --- Send alert if anything new triggered ---
     if messages:
@@ -590,7 +610,7 @@ def main():
                   if hour in [0,12]:
                     alarm_candle_patterns(symbol, candles_12h, "12h")
                   if hour in [0]:
-                    alarm_candle_patterns(symbol, candles_1d, "1h")   
+                    alarm_candle_patterns(symbol, candles_1d, "1d")   
                
            #Beobachtung all pair futures
            send_telegram_alert("MX_USDT", "<-----Bearbeitung Alls Pairs----->")
