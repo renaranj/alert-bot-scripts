@@ -18,5 +18,10 @@
     "4h": false,
     "12h": false,
     "1d": false
+  },
+  "LQTY_USDT_ema": {
+    "4h": false,
+    "12h": false,
+    "1d": false
   }
 }
