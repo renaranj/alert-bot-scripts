@@ -118,16 +118,20 @@ def check_price_alarms():
             
 # Get EMA state from GitHub
 def load_ema_touch_state():
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{EMA_TOUCH_FILE}"
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{TOUCH_STATE_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    response = requests.get(GITHUB_API_URL, headers=headers)
-    if response.status_code == 200:
-        content = response.json()
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    content = response.json()
+
+    # Decode and validate JSON
+    try:
         decoded = base64.b64decode(content["content"]).decode("utf-8")
-        return json.loads(decoded), content["sha"]
-    else:
-        print(f"Failed to load from GitHub: {response.status_code}, {response.text}")
-        return {}, None
+        data = json.loads(decoded) if decoded.strip() else {}
+    except (json.JSONDecodeError, KeyError):
+        data = {}
+
+    return data, content.get("sha")
 
 # Save EMA state to GitHub
 def save_ema_touch_state(data, sha):
