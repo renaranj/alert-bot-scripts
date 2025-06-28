@@ -39,7 +39,7 @@ futures_interval_map = {
 
 GITHUB_REPO = "renaranj/alert-bot-scripts"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-EMA_TOUCH_STATE = "ema_touch_state.json"
+TOUCH_STATE_FILE = "ema_touch_state.json"
 PRICE_ALARM_FILE = "price_alarm_state.json"
 OFFSET_FILE_PATH = "telegram_offset.json"
 
