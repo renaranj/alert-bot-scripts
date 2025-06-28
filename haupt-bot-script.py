@@ -41,7 +41,46 @@ GITHUB_REPO = "renaranj/alert-bot-scripts"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 EMA_TOUCH_FILE = "ema_touch_state.json"
 PRICE_ALARM_FILE = "price_alarm_state.json"
+OFFSET_FILE_PATH = "telegram_offset.json"
 
+def load_telegram_offset():
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{OFFSET_FILE_PATH}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    try:
+        r = requests.get(url, headers=headers)
+        r.raise_for_status()
+        content = r.json()
+        decoded = base64.b64decode(content["content"]).decode("utf-8")
+        offset_data = json.loads(decoded)
+        return offset_data.get("offset", 0), content["sha"]
+    except Exception as e:
+        print(f"[ERROR] load_telegram_offset: {e}")
+        return 0, None
+
+def save_telegram_offset(offset, sha):
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{OFFSET_FILE_PATH}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    new_content = json.dumps({"offset": offset}, indent=2)
+    encoded = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
+
+    data = {
+        "message": f"Update Telegram offset to {offset}",
+        "content": encoded,
+        "sha": sha,
+        "branch": "main",
+    }
+    try:
+        r = requests.put(url, headers=headers, data=json.dumps(data))
+        r.raise_for_status()
+    except Exception as e:
+        print(f"[ERROR] save_telegram_offset: {e}")
+            
 # Get EMA state from GitHub
 def load_price_alarm_state():
     url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{PRICE_ALARM_FILE}"
@@ -605,14 +644,15 @@ def handle_telegram_command(command_text):
     return "❓ Invalid command. Use: /alarm SYMBOL PRICE"
 
 def poll_telegram():
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getUpdates"
+    offset, sha = load_telegram_offset()
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?timeout=10&offset={offset}"
     try:
         resp = requests.get(url)
         updates = resp.json().get("result", [])
         for update in updates:
             message = update.get("message")
             if not message:
-                continue  # Skip if no message part (e.g., edited_message or callback)
+                continue
 
             chat_id = message["chat"]["id"]
             text = message.get("text", "")
@@ -620,8 +660,14 @@ def poll_telegram():
                 response = handle_telegram_command(text)
                 send_telegram_message(chat_id, response)
 
+            # Always advance offset after handling
+            offset = update["update_id"] + 1
+
+        if sha and offset:
+            save_telegram_offset(offset, sha)
+
     except Exception as e:
-        print(f"[ERROR] Failed to poll Telegram: {e}")
+        print(f"[ERROR] poll_telegram: {e}")
             
 def main():
         now = datetime.now(timezone.utc)
