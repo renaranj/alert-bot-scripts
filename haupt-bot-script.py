@@ -649,7 +649,7 @@ def handle_telegram_command(command_text):
 
 def poll_telegram():
     offset, sha = load_telegram_offset()
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates?timeout=10&offset={offset}"
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getUpdates?timeout=10&offset={offset}"
     try:
         resp = requests.get(url)
         updates = resp.json().get("result", [])
