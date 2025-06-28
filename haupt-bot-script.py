@@ -756,13 +756,13 @@ def main():
              poll_telegram()
              check_price_alarms()
              symbols = []
-             #symbols = ["QNT_USDT","BADGER_USDT"]
+             symbols = ["LQTY_USDT"]
              for symbol in symbols:
                  candles_4h = get_candles(symbol,"4h",limit=1054)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d",limit=350)
                  alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d,False,True)
-                 alarm_candle_patterns(symbol, candles_12h, "12h")
+                 alarm_candle_patterns(symbol, candles_12h, "12h",False,True)
                  alarm_ichimoku_crosses(symbol, candles_4h, '4h')
                  alarm_price_change(symbol, candles_4h, 10)
                  alarm_price_crosses(symbol, candles_4h, float(0.011))    
