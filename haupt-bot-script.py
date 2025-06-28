@@ -135,6 +135,7 @@ def load_ema_touch_state():
 
 # Save EMA state to GitHub
 def save_ema_touch_state(data, sha):
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{TOUCH_STATE_FILE}"
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
         "Content-Type": "application/json",
@@ -146,7 +147,7 @@ def save_ema_touch_state(data, sha):
         "sha": sha,
         "branch": "main"  # or the branch you're using
     }
-    response = requests.put(GITHUB_API_URL, headers=headers, data=json.dumps(payload))
+    response = requests.put(url, headers=headers, data=json.dumps(payload))
     if response.status_code == 200 or response.status_code == 201:
         print("State saved to GitHub.")
     else:
