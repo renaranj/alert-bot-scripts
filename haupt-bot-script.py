@@ -762,7 +762,7 @@ def main():
                  candles_4h = get_candles(symbol,"4h",limit=1054)
                  candles_12h = get_12h_candles_from_4h(candles_4h)
                  candles_1d = get_candles(symbol,"1d",limit=350)
-                 alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d,False,True)
+                 alarm_ema200_crosses(symbol, candles_4h, candles_12h, candles_1d)
                  alarm_candle_patterns(symbol, candles_12h, "12h",False,True)
                  alarm_ichimoku_crosses(symbol, candles_4h, '4h')
                  alarm_price_change(symbol, candles_4h, 10)
